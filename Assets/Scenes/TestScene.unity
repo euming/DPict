@@ -165,8 +165,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c034ec0afd68a84ebeadaaaa90f5419, type: 1}
   m_Name: 
-  m_brushWidth: 16
-  m_brushColor: {r: 0, g: 0, b: 1, a: 1}
+  m_brushWidth: 32
+  m_brushColor: {r: 0, g: 1, b: 0, a: 1}
   m_BrushStyle: 1
 --- !u!1 &145164767
 GameObject:
@@ -526,7 +526,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c034ec0afd68a84ebeadaaaa90f5419, type: 1}
   m_Name: 
   m_brushWidth: 16
-  m_brushColor: {r: 0, g: 0, b: 1, a: 1}
+  m_brushColor: {r: 1, g: 0, b: 0, a: 1}
   m_BrushStyle: 1
 --- !u!114 &733306007
 MonoBehaviour:
@@ -1633,7 +1633,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c034ec0afd68a84ebeadaaaa90f5419, type: 1}
   m_Name: 
-  m_brushWidth: 16
+  m_brushWidth: 8
   m_brushColor: {r: 0, g: 0, b: 1, a: 1}
   m_BrushStyle: 1
 --- !u!114 &1903378703
