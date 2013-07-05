@@ -6,7 +6,9 @@ using System.Collections.Generic;
 [AddComponentMenu ("DPict/Layer")]
 public class Layer : MonoBehaviour 
 {
-	Texture2D			m_myTexture;
+	Texture				m_myTexture;
+	Texture2D			m_myTexture2D;
+	RenderTexture		m_myRenderTexture;
 	Camera				m_myCamera = null;
 	Color[]				m_pixelLayer;
 	public int			m_textureWidth;
@@ -16,7 +18,9 @@ public class Layer : MonoBehaviour
 	int					m_frameCounter;
 	bool				m_bIsDrawing;
 	float				m_BrushLineDensity = 3.5f;
-
+	
+	public Camera		m_RenderCamera;
+	
 	/*
 	//	brush stuff
 	float				m_blendValue = 0.333f;
@@ -59,17 +63,33 @@ public class Layer : MonoBehaviour
 	    renderer.material.mainTexture = InstantiateTexture();
 	}
 	
-	Texture2D InstantiateTexture()
+	Texture InstantiateTexture()
 	{
-		Texture2D texture = Instantiate(renderer.material.mainTexture) as Texture2D;
+		Texture texture = Instantiate(renderer.material.mainTexture) as Texture;
 	    
-		m_myTexture = texture;
-		m_textureWidth = texture.width;
-		m_textureHeight = texture.height;
-		
-		Clear(texture, 0, Color.white);
-		
-		m_pixelLayer = texture.GetPixels(0);
+		if (texture != null) {
+			m_myTexture2D = texture as Texture2D;
+			
+			m_myRenderTexture = texture as RenderTexture;
+			
+			m_myTexture = texture;
+			m_textureWidth = texture.width;
+			m_textureHeight = texture.height;
+			
+			if (m_myTexture2D != null) {
+				Clear(m_myTexture2D, 0, Color.white);
+				m_pixelLayer = m_myTexture2D.GetPixels(0);
+			}
+			
+			if (m_myRenderTexture != null) {
+				if (m_RenderCamera != null) {
+					m_RenderCamera.targetTexture = m_myRenderTexture;
+					m_RenderCamera.isOrthoGraphic = true;
+					m_RenderCamera.aspect = 1.0f;
+					m_RenderCamera.ResetAspect();
+				}
+			}
+		}
 		
 		return texture;
 	}
@@ -238,18 +258,25 @@ public class Layer : MonoBehaviour
 	{
 		int		buffer = 2;
 		int		nSegments = 3;
-		BoxExtents extents;
 		
-		extents = InterpolatePreviousPoints(m_maxPoints-buffer-nSegments, m_maxPoints-buffer);
-		//m_myTexture.SetPixels(0, (int)extents.min.y, 1024, (int)(extents.max.y-extents.min.y), m_pixelLayer);
-		//m_myTexture.SetPixels(0, 0, 1024, (int)(extents.max.y-extents.min.y), m_pixelLayer);
-		m_myTexture.SetPixels(m_pixelLayer, 0);
-		m_myTexture.Apply();
+		bool	bSlowCPUTextureUpdate = true;
+		
+		if (bSlowCPUTextureUpdate && m_myTexture2D) {
+			BoxExtents extents;
+			
+			extents = InterpolatePreviousPoints(m_maxPoints-buffer-nSegments, m_maxPoints-buffer);
+			//m_myTexture.SetPixels(0, (int)extents.min.y, 1024, (int)(extents.max.y-extents.min.y), m_pixelLayer);
+			//m_myTexture.SetPixels(0, 0, 1024, (int)(extents.max.y-extents.min.y), m_pixelLayer);
+			m_myTexture2D.SetPixels(m_pixelLayer, 0);
+			m_myTexture2D.Apply();
+		}
 	}
 	
 	public void Clear()
 	{
-		Clear(this.m_myTexture, 0, Color.white);
+		if (m_myTexture2D != null) {
+			Clear(this.m_myTexture2D, 0, Color.white);
+		}
 	}
 	
 	public void Clear(Texture2D texture, int mip, Color color)
