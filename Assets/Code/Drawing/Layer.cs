@@ -6,7 +6,7 @@ using System.Collections.Generic;
 [AddComponentMenu ("DPict/Layer")]
 public class Layer : MonoBehaviour 
 {
-	Texture				m_myTexture;
+	public Texture		m_myTexture;
 	Texture2D			m_myTexture2D;
 	RenderTexture		m_myRenderTexture;
 	Camera				m_myCamera = null;
@@ -242,11 +242,13 @@ public class Layer : MonoBehaviour
 		Vector3 hitPoint = Vector3.zero;
 		Ray ray = m_myCamera.ScreenPointToRay(Input.mousePosition);
 		RaycastHit hit;
-		
+		bool		bUseRelative2DCoords = true;
 		if (Physics.Raycast(ray, out hit, m_myCamera.farClipPlane, m_myCamera.cullingMask)) {
 			hitPoint = hit.point;
-			hitPoint.x = 1024 - (hit.point.x + 512);
-			hitPoint.y = 1024 - (hit.point.y + 512);
+			if (bUseRelative2DCoords) {
+				hitPoint.x = 1024 - (hit.point.x + 512);
+				hitPoint.y = 1024 - (hit.point.y + 512);
+			}
 		}
 		else {
 			hitPoint = m_prevPoints[m_prevPoints.Length-1];		//	use previous point if we're off screen
@@ -269,6 +271,17 @@ public class Layer : MonoBehaviour
 			//m_myTexture.SetPixels(0, 0, 1024, (int)(extents.max.y-extents.min.y), m_pixelLayer);
 			m_myTexture2D.SetPixels(m_pixelLayer, 0);
 			m_myTexture2D.Apply();
+		}
+		else {
+			GameObject spriteGO = Sprite3D.CreateSprite3D(m_myBrush.GetTexture());
+			spriteGO.transform.parent = this.transform;
+			Vector3 localpos = m_prevPoints[m_prevPoints.Length-1];
+			/*
+			localpos.x *= spriteGO.transform.localScale.x;
+			localpos.y *= spriteGO.transform.localScale.y;
+			localpos.z *= spriteGO.transform.localScale.z;
+			*/
+			spriteGO.transform.localPosition = m_prevPoints[m_prevPoints.Length-1];
 		}
 	}
 	

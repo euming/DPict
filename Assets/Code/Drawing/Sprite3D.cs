@@ -77,8 +77,9 @@ public class Sprite3D : MonoBehaviour
 		
 		GameObject newSprite3D = new GameObject(tex2D.name+"_Sprite3D");
 //		Frame	frame = newSprite3D.AddComponent<Frame>(); // removed due to warning (slc)
-		newSprite3D.AddComponent<Frame>(); // added due to warning - leak? (slc)
+
 		Sprite3D sprite3Dcomponent = newSprite3D.AddComponent<Sprite3D>();
+		newSprite3D.AddComponent<Frame>(); // added due to warning - leak? (slc)
 		//	sprite3Dcomponent = newSprite3D.GetComponent<Sprite3D>();	//	probably unnecessary
 		sprite3Dcomponent.SetTexture(tex2D);
 		sprite3Dcomponent.InitFrameRect();

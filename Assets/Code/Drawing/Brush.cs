@@ -30,6 +30,14 @@ public class Brush : MonoBehaviour
 		UpdateBrushIcon();
 	}
 	
+	public Texture GetTexture()
+	{
+		Texture tex = null;
+		if (m_myLayer) {
+			tex = m_myLayer.m_myTexture;
+		}
+		return tex;
+	}
 	public void UpdateBrushIcon()
 	{
 		m_myLayer.Clear();
