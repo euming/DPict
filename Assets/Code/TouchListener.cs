@@ -30,10 +30,13 @@ public class TouchListener : MonoBehaviour
 	private GameObject[]	m_currentlyTouchedGO = {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null};	//	16 slots. 7 wasn't enough!
 	//private	Publisher		m_myPublisher;
 	
+	bool	bTouchEnabled;
+	
 	void Awake()
 	{
 		m_camera = GetComponent<Camera>();
 		//m_myPublisher = GetComponent<Publisher>();
+		bTouchEnabled = Input.multiTouchEnabled;
 	}
 	
 	/*
@@ -110,8 +113,89 @@ public class TouchListener : MonoBehaviour
 		}
 	}
 	
+	/*
+	 * 	Allows different buttons to be differentiated
+	 */
+	void MouseTapSelect()
+	{
+		string		buttonMsg;
+		
+		Camera cam = m_camera;
+		GameObject hitGO = null;
+		
+		int nButtons = 2;	//	how many buttons does our mouse have? No idea
+		
+		for(int ii=0; ii<nButtons; ii++) {
+			bool bForgetButton = false;	//	used for m_currentlyTouchedGO[ii] = null; so that m_currentlyTouchedGO may be valid for us to do other things with it 
+			bool bButtonDown = Input.GetMouseButtonDown(ii);
+			bool bButtonUp = Input.GetMouseButtonUp(ii);
+			bool bButtonHeld = Input.GetMouseButton(ii);
+			bool bButtonAny = bButtonDown || bButtonUp || bButtonHeld;
+			Vector3 mousePos = Input.mousePosition;
+			
+			Ray ray = cam.ScreenPointToRay(mousePos);
+			RaycastHit hit;
+			hitGO = null;
+			
+			if (Physics.Raycast(ray, out hit)) {
+				hitGO = hit.transform.gameObject;	//	if we touched something
+			}
+
+			//	something changed from last frame
+			if (m_currentlyTouchedGO[ii] != hitGO) {
+				if (m_currentlyTouchedGO[ii] != null) {
+					m_currentlyTouchedGO[ii].SendMessage("OnMouseExitListener", ii, SendMessageOptions.DontRequireReceiver);
+					Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseExit("+ ii+")" + m_currentlyTouchedGO[ii].name);
+				}
+				if (hitGO != null) {
+					m_currentlyTouchedGO[ii] = hitGO;
+					m_currentlyTouchedGO[ii].SendMessage("OnMouseEnterListener", ii, SendMessageOptions.DontRequireReceiver);
+					Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseEnter("+ ii+")" + m_currentlyTouchedGO[ii].name);
+				}
+				else {
+					bForgetButton = true;
+				}
+			}
+			
+			if (bButtonAny) {
+				buttonMsg = null;
+				//	we pressed the button this frame
+				if (bButtonDown) {
+					if (hitGO != null) {	//	only send this message if the button was hit
+						//m_currentlyTouchedGO[ii] = hitGO;
+						buttonMsg = "OnMouseDownListener";
+					}
+				}
+				
+				//	we released the button this frame
+				if (bButtonUp) {
+					if (hitGO != null) {	//	only send this message if the button was hit
+						buttonMsg = "OnMouseUpListener";
+						bForgetButton = true;
+					}
+				}
+				
+				if (m_currentlyTouchedGO[ii] != null) {
+					if (buttonMsg != null) {
+						hitGO.SendMessage(buttonMsg, ii, SendMessageOptions.DontRequireReceiver);
+					}
+				}
+			}
+			
+			if (bForgetButton) {
+				m_currentlyTouchedGO[ii] = null;
+			}
+			
+		}
+	}
+
 	void Update()
 	{
-		TouchTapSelect();
+		if (bTouchEnabled) {
+			TouchTapSelect();
+		}
+		else {
+			MouseTapSelect();
+		}
 	}
 }

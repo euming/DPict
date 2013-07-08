@@ -124,17 +124,31 @@ public class Layer : MonoBehaviour
 		m_currentLayer.m_myBrush.SetBrushSize(sz);
 	}
 	
-	public void OnMouseDown()
+	public void OnMouseDownListener(int buttonNo)
 	{
 		m_bIsDrawing = true;
 		StartPoint(GetPoint());
 	}
 	
-	public void OnMouseUp()
+	public void OnMouseUpListener(int buttonNo)
 	{
 		DrawSegments();
 		m_bIsDrawing = false;
 	}
+
+	/*
+	public void OnMouseEnterListener(int buttonNo)
+	{
+		m_bIsDrawing = true;
+		StartPoint(GetPoint());
+	}
+
+	public void OnMouseExitListener(int buttonNo)
+	{
+		DrawSegments();
+		m_bIsDrawing = false;
+	}
+	*/
 	
 	public void PaintBrush(Vector3 pos, Brush brush)
 	{
