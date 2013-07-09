@@ -248,18 +248,14 @@ public class Layer : MonoBehaviour
 		return output;
 	}
 	
-	public float m_scale = 1.333f;
-	public float m_yoffset = 0.13333f;
+	bool m_bFastRender = true;	//	uses polygons rather than direct texture access to draw brushes
+	
 	Vector3 GetPoint()
 	{
 		Vector3 hitPoint = Vector3.zero;
 		if (m_myCamera == null) 	//	early bail
 			return hitPoint;
-			
-		if (m_myCamera != null) {
-			m_myCamera.isOrthoGraphic = true;
-			m_myCamera.aspect = 1.0f;
-		}
+		
 		//	there seems to be a bug where the ViewPort of the editor camera is used rather than the camera I've specified here.
 		//	Ray ray = m_myCamera.ScreenPointToRay(Input.mousePosition);		//	for perspective camera
 		Vector3 mousePos = Input.mousePosition;	//	this is the mouse position on the screen. this seems okay. However, it is in actual pixels. So the editor window size affects this value. Also, the camera we render to may not be the same one as we used for the Mouse Position!
@@ -272,22 +268,29 @@ public class Layer : MonoBehaviour
 		//	in general, mouseViewportPos = mousePos / texture(width, height)
 		Ray ray = mainCamera.ScreenPointToRay(mousePos);
 		RaycastHit hit;
-		bool		bUseRelative2DCoords = true;
+		bool		bUseRelative2DCoords = !m_bFastRender;
 		if (Physics.Raycast(ray, out hit, m_myCamera.farClipPlane, m_myCamera.cullingMask)) {
 			hitPoint = hit.point;
 			float rayLen = this.transform.position.z - ray.origin.z;
-			Debug.DrawRay(ray.origin, ray.direction * rayLen, Color.red);
+			//	Debug.DrawRay(ray.origin, ray.direction * rayLen, Color.red);
+			float xoffset = 0.0f;
+			float yoffset = 0.0f;
+			int width = m_myTexture.width;
+			int height = m_myTexture.height;
 			if (bUseRelative2DCoords) {
-				float aspect = m_myCamera.aspect;
-				int width = m_myTexture.width;
-				int height = (int)((float)m_myTexture.height);
-				float scale = m_scale;
-				float xoffset = 0.0f;
-				float yoffset = height * m_yoffset;
-				//	old way
-				hitPoint.x = width - (hit.point.x * scale + width/2 + xoffset);
-				hitPoint.y = height - (hit.point.y * scale + height/2 + yoffset);
-				
+				xoffset = (float)width/2.0f;
+				yoffset = (float)height/2.0f;
+			}
+			//	old way
+			bool bReverseX = false;
+			bool bReverseY = !m_bFastRender;
+			hitPoint.x = (hit.point.x + xoffset);	//	in the shader for this gameObject, use tiling x=-1
+			hitPoint.y = (hit.point.y + yoffset);
+			if (bReverseX) {
+				hitPoint.x = (float)width - hitPoint.x;
+			}
+			if (bReverseY) {
+				hitPoint.y = (float)height - hitPoint.y;
 			}
 		}
 		else {
@@ -301,7 +304,7 @@ public class Layer : MonoBehaviour
 		int		buffer = 2;
 		int		nSegments = 3;
 		
-		bool	bSlowCPUTextureUpdate = true;
+		bool	bSlowCPUTextureUpdate = !m_bFastRender;
 		
 		if (bSlowCPUTextureUpdate && m_myTexture2D) {
 			BoxExtents extents;

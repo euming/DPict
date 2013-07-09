@@ -158,8 +158,6 @@ MonoBehaviour:
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}
   m_myBrush: {fileID: 120915132}
-  m_scale: 1.33299994
-  m_yoffset: .133330002
 --- !u!114 &120915132
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -659,8 +657,6 @@ MonoBehaviour:
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}
   m_myBrush: {fileID: 733306006}
-  m_scale: 1.33299994
-  m_yoffset: .133330002
 --- !u!1 &829509541
 GameObject:
   m_ObjectHideFlags: 0
@@ -838,8 +834,6 @@ MonoBehaviour:
   m_textureHeight: 1024
   m_RenderCamera: {fileID: 311575339}
   m_myBrush: {fileID: 1903378702}
-  m_scale: 1
-  m_yoffset: 0
 --- !u!43 &1119324128
 Mesh:
   m_ObjectHideFlags: 0
@@ -1590,8 +1584,6 @@ MonoBehaviour:
   m_textureHeight: 1024
   m_RenderCamera: {fileID: 311575339}
   m_myBrush: {fileID: 1903378702}
-  m_scale: 1.33299994
-  m_yoffset: .133330002
 --- !u!1 &1654664521
 GameObject:
   m_ObjectHideFlags: 0
@@ -2074,5 +2066,3 @@ MonoBehaviour:
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}
   m_myBrush: {fileID: 1903378702}
-  m_scale: 1.33299994
-  m_yoffset: .133330002
