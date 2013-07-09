@@ -56,7 +56,8 @@ public class ColorPick : MonoBehaviour
 	
 	public Vector3 GetPoint()
 	{
-        Ray rayToMouse = m_myCamera.ScreenPointToRay (Input.mousePosition);
+		
+        Ray rayToMouse = Camera.main.ScreenPointToRay (Input.mousePosition);
         RaycastHit hitInfo;
 		lastRay = rayToMouse;
         if (collider.Raycast (rayToMouse, out hitInfo, 100.0f)) {

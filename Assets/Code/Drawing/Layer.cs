@@ -9,7 +9,7 @@ public class Layer : MonoBehaviour
 	public Texture		m_myTexture;
 	Texture2D			m_myTexture2D;
 	RenderTexture		m_myRenderTexture;
-	Camera				m_myCamera = null;
+	public Camera		m_myCamera = null;		//	used for collisions
 	Color[]				m_pixelLayer;
 	public int			m_textureWidth;
 	public int			m_textureHeight;
@@ -38,10 +38,6 @@ public class Layer : MonoBehaviour
 	
 	void Awake()
 	{
-		GameObject camGO = GameObject.FindGameObjectWithTag("OrthoCamera");
-		if (camGO != null) {
-			m_myCamera = camGO.camera;
-		}
 		/*
 		color_palette = new Color[m_maxColors];
 		color_palette[0] = Color.blue;
@@ -85,7 +81,8 @@ public class Layer : MonoBehaviour
 				if (m_RenderCamera != null) {
 					m_RenderCamera.targetTexture = m_myRenderTexture;
 					m_RenderCamera.isOrthoGraphic = true;
-					m_RenderCamera.aspect = 1.0f;
+					m_RenderCamera.aspect = (float)m_myRenderTexture.width/(float)m_myRenderTexture.height;
+					m_RenderCamera.orthographicSize = m_myRenderTexture.height / 2;
 					m_RenderCamera.ResetAspect();
 				}
 			}
@@ -251,17 +248,46 @@ public class Layer : MonoBehaviour
 		return output;
 	}
 	
+	public float m_scale = 1.333f;
+	public float m_yoffset = 0.13333f;
 	Vector3 GetPoint()
 	{
 		Vector3 hitPoint = Vector3.zero;
-		Ray ray = m_myCamera.ScreenPointToRay(Input.mousePosition);
+		if (m_myCamera == null) 	//	early bail
+			return hitPoint;
+			
+		if (m_myCamera != null) {
+			m_myCamera.isOrthoGraphic = true;
+			m_myCamera.aspect = 1.0f;
+		}
+		//	there seems to be a bug where the ViewPort of the editor camera is used rather than the camera I've specified here.
+		//	Ray ray = m_myCamera.ScreenPointToRay(Input.mousePosition);		//	for perspective camera
+		Vector3 mousePos = Input.mousePosition;	//	this is the mouse position on the screen. this seems okay. However, it is in actual pixels. So the editor window size affects this value. Also, the camera we render to may not be the same one as we used for the Mouse Position!
+		//	we need to figure out the mouse position if it were in this camera's viewport. The above mouse position is for the screen camera's viewport
+		Camera mainCamera = Camera.main;	//	main camera is the one we use for mouse pick stuff
+		/*
+		Vector3 mouseViewportPos = mainCamera.ScreenToViewportPoint(mousePos);	//	but this is not the viewport of the Editor window camera.
+		Ray ray = mainCamera.ViewportPointToRay(mouseViewportPos);		//	for perspective camera
+		*/
+		//	in general, mouseViewportPos = mousePos / texture(width, height)
+		Ray ray = mainCamera.ScreenPointToRay(mousePos);
 		RaycastHit hit;
 		bool		bUseRelative2DCoords = true;
 		if (Physics.Raycast(ray, out hit, m_myCamera.farClipPlane, m_myCamera.cullingMask)) {
 			hitPoint = hit.point;
+			float rayLen = this.transform.position.z - ray.origin.z;
+			Debug.DrawRay(ray.origin, ray.direction * rayLen, Color.red);
 			if (bUseRelative2DCoords) {
-				hitPoint.x = 1024 - (hit.point.x + 512);
-				hitPoint.y = 1024 - (hit.point.y + 512);
+				float aspect = m_myCamera.aspect;
+				int width = m_myTexture.width;
+				int height = (int)((float)m_myTexture.height);
+				float scale = m_scale;
+				float xoffset = 0.0f;
+				float yoffset = height * m_yoffset;
+				//	old way
+				hitPoint.x = width - (hit.point.x * scale + width/2 + xoffset);
+				hitPoint.y = height - (hit.point.y * scale + height/2 + yoffset);
+				
 			}
 		}
 		else {
@@ -336,7 +362,6 @@ public class Layer : MonoBehaviour
 			}
 			m_frameCounter++;
 		}
-		
 		/*
 		//	right clicked
 		if (Input.GetMouseButtonDown(1) == true) {
