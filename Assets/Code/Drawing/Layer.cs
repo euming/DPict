@@ -19,7 +19,11 @@ public class Layer : MonoBehaviour
 	bool				m_bIsDrawing;
 	float				m_BrushLineDensity = 3.5f;
 	
+	
 	public Camera		m_RenderCamera;
+	
+	//	use slow render for brushes and other things that need to directly modify the texture
+	public bool m_bFastRender = true;	//	uses polygons rather than direct texture access to draw brushes
 	
 	/*
 	//	brush stuff
@@ -180,6 +184,7 @@ public class Layer : MonoBehaviour
 						else {
 							blendValue = 1.0f * brushBlendValue;
 						}
+						color.a = blendValue;	//	use hardware blending
 						m_pixelLayer[xx+xStart + (yy+yStart)*m_textureWidth] = Color.Lerp(m_pixelLayer[xx+xStart + (yy+yStart)*m_textureWidth], color, blendValue);
 					}
 				}
@@ -247,8 +252,6 @@ public class Layer : MonoBehaviour
 		}
 		return output;
 	}
-	
-	bool m_bFastRender = true;	//	uses polygons rather than direct texture access to draw brushes
 	
 	Vector3 GetPoint()
 	{
@@ -331,7 +334,9 @@ public class Layer : MonoBehaviour
 	public void Clear()
 	{
 		if (m_myTexture2D != null) {
-			Clear(this.m_myTexture2D, 0, Color.white);
+			Color clearColor = Color.white;
+			clearColor.a = 0.0f;
+			Clear(this.m_myTexture2D, 0, clearColor);
 		}
 	}
 	

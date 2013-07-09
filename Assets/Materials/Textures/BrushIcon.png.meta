@@ -19,7 +19,7 @@ TextureImporter:
   isReadable: 1
   grayScaleToAlpha: 0
   generateCubemap: 0
-  textureFormat: 3
+  textureFormat: 5
   maxTextureSize: 1024
   textureSettings:
     filterMode: 0
@@ -30,8 +30,4 @@ TextureImporter:
   lightmap: 0
   compressionQuality: 50
   textureType: 5
-  buildTargetSettings:
-  - buildTarget: Standalone
-    maxTextureSize: 1024
-    textureFormat: 3
-    compressionQuality: 50
+  buildTargetSettings: []

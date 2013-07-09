@@ -157,6 +157,7 @@ MonoBehaviour:
   m_textureWidth: 0
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}
+  m_bFastRender: 0
   m_myBrush: {fileID: 120915132}
 --- !u!114 &120915132
 MonoBehaviour:
@@ -656,6 +657,7 @@ MonoBehaviour:
   m_textureWidth: 0
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}
+  m_bFastRender: 0
   m_myBrush: {fileID: 733306006}
 --- !u!1 &829509541
 GameObject:
@@ -833,6 +835,7 @@ MonoBehaviour:
   m_textureWidth: 1024
   m_textureHeight: 1024
   m_RenderCamera: {fileID: 311575339}
+  m_bFastRender: 1
   m_myBrush: {fileID: 1903378702}
 --- !u!43 &1119324128
 Mesh:
@@ -1583,6 +1586,7 @@ MonoBehaviour:
   m_textureWidth: 1024
   m_textureHeight: 1024
   m_RenderCamera: {fileID: 311575339}
+  m_bFastRender: 1
   m_myBrush: {fileID: 1903378702}
 --- !u!1 &1654664521
 GameObject:
@@ -2047,7 +2051,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c034ec0afd68a84ebeadaaaa90f5419, type: 1}
   m_Name: 
-  m_brushWidth: 8
+  m_brushWidth: 32
   m_brushColor: {r: 0, g: 0, b: 1, a: 1}
   m_BrushStyle: 1
 --- !u!114 &1903378703
@@ -2065,4 +2069,5 @@ MonoBehaviour:
   m_textureWidth: 0
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}
+  m_bFastRender: 0
   m_myBrush: {fileID: 1903378702}
