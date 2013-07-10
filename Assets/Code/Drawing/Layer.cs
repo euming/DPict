@@ -7,6 +7,7 @@ using System.Collections.Generic;
 public class Layer : MonoBehaviour 
 {
 	public Texture		m_myTexture;
+	public Texture2D	m_myBackground;			//	used when clearing
 	Texture2D			m_myTexture2D;
 	RenderTexture		m_myRenderTexture;
 	public Camera		m_myCamera = null;		//	used for collisions
@@ -19,6 +20,7 @@ public class Layer : MonoBehaviour
 	bool				m_bIsDrawing;
 	float				m_BrushLineDensity = 3.5f;
 	
+	List<GameObject>	m_spriteList = new List<GameObject>();
 	
 	public Camera		m_RenderCamera;
 	
@@ -61,6 +63,7 @@ public class Layer : MonoBehaviour
 	
 		m_prevPoints = new Vector3[m_maxPoints];
 	    renderer.material.mainTexture = InstantiateTexture();
+		Clear();
 	}
 	
 	Texture InstantiateTexture()
@@ -213,7 +216,7 @@ public class Layer : MonoBehaviour
 		public Vector3 min;
 	}
 	
-	BoxExtents InterpolatePreviousPoints(int idx0, int idx1)
+	void InterpolatePreviousPoints(int idx0, int idx1)
 	{
 		Vector3 newPt;
 		float fBrushWidth = (float)m_myBrush.GetBrushSize();
@@ -221,36 +224,27 @@ public class Layer : MonoBehaviour
 		float	interpolationAmount = 0.1f;
 		float 	distBetweenPts;
 		float	nInterpolations;
-		BoxExtents	output;
 		
-		output.min = m_prevPoints[idx0];
-		output.max = m_prevPoints[idx0];
 		for(int ii=idx0; ii<idx1; ii++) {
 			for(float p=0.0f; p<1.0f; p+=interpolationAmount) {
 				distBetweenPts = Vector3.Distance(m_prevPoints[ii], m_prevPoints[ii+1]);
 				nInterpolations = m_BrushLineDensity * distBetweenPts / fBrushWidth;
 				if (nInterpolations == 0) {
 					nInterpolations = 1;
+					interpolationAmount = 1.0f;
 				}
-				interpolationAmount = 1.0f / nInterpolations;
+				else {
+					interpolationAmount = 1.0f / nInterpolations;
+				}
 				newPt = Vector3.Lerp(m_prevPoints[ii], m_prevPoints[ii+1], p);
-				PaintBrush(newPt, m_myBrush);
-				
-				if (newPt.x - m_myBrush.m_brushWidth < output.min.x) {
-					output.min.x = newPt.x - m_myBrush.m_brushWidth;
+				if (this.m_bFastRender == true) {
+					CreateBrushGO(m_myBrush, newPt);
 				}
-				if (newPt.x + m_myBrush.m_brushWidth > output.max.x) {
-					output.max.x = newPt.x + m_myBrush.m_brushWidth;
-				}
-				if (newPt.y - m_myBrush.m_brushWidth < output.min.y) {
-					output.min.y = newPt.y - m_myBrush.m_brushWidth;
-				}
-				if (newPt.y + m_myBrush.m_brushWidth > output.max.y) {
-					output.max.y = newPt.y + m_myBrush.m_brushWidth;
+				else {
+					PaintBrush(newPt, m_myBrush);
 				}
 			}
 		}
-		return output;
 	}
 	
 	Vector3 GetPoint()
@@ -302,6 +296,31 @@ public class Layer : MonoBehaviour
 		return hitPoint;
 	}
 	
+	bool m_bDestroyAllSprites = false;
+	
+	void DestroyAllSprites()
+	{
+		if (m_bDestroyAllSprites == true) {
+			foreach(GameObject go in m_spriteList)
+			{
+				Destroy(go, 1.0f/ 30.0f);
+			}
+			m_spriteList.Clear();
+		}
+		m_bDestroyAllSprites = false;
+	}
+	
+	GameObject CreateBrushGO(Brush brush, Vector3 worldPos)
+	{
+		GameObject spriteGO = Sprite3D.CreateSprite3D(brush.GetTexture());
+		spriteGO.transform.position = worldPos;
+		spriteGO.transform.parent = this.transform;
+		spriteGO.layer = this.gameObject.layer;
+		m_spriteList.Add(spriteGO);
+		return spriteGO;
+		
+	}
+	
 	public void DrawSegments()
 	{
 		int		buffer = 2;
@@ -310,33 +329,47 @@ public class Layer : MonoBehaviour
 		bool	bSlowCPUTextureUpdate = !m_bFastRender;
 		
 		if (bSlowCPUTextureUpdate && m_myTexture2D) {
-			BoxExtents extents;
-			
-			extents = InterpolatePreviousPoints(m_maxPoints-buffer-nSegments, m_maxPoints-buffer);
+			InterpolatePreviousPoints(m_maxPoints-buffer-nSegments, m_maxPoints-buffer);
 			//m_myTexture.SetPixels(0, (int)extents.min.y, 1024, (int)(extents.max.y-extents.min.y), m_pixelLayer);
 			//m_myTexture.SetPixels(0, 0, 1024, (int)(extents.max.y-extents.min.y), m_pixelLayer);
 			m_myTexture2D.SetPixels(m_pixelLayer, 0);
 			m_myTexture2D.Apply();
 		}
 		else {
+			/*
 			GameObject spriteGO = Sprite3D.CreateSprite3D(m_myBrush.GetTexture());
 			spriteGO.transform.parent = this.transform;
 			Vector3 localpos = m_prevPoints[m_prevPoints.Length-1];
-			/*
-			localpos.x *= spriteGO.transform.localScale.x;
-			localpos.y *= spriteGO.transform.localScale.y;
-			localpos.z *= spriteGO.transform.localScale.z;
-			*/
 			spriteGO.transform.localPosition = m_prevPoints[m_prevPoints.Length-1];
+			spriteGO.layer = this.gameObject.layer;
+			*/
+			/*
+			GameObject spriteGO = CreateBrushGO(m_myBrush, m_prevPoints[m_prevPoints.Length-1]);
+			m_spriteList.Add(spriteGO);
+			*/
+			InterpolatePreviousPoints(m_maxPoints-buffer-nSegments, m_maxPoints-buffer);
+
+			if (this.m_RenderCamera != null) {
+				LayerBake baker = m_RenderCamera.GetComponent<LayerBake>();
+				if (baker != null) {
+					baker.Dirty();
+					m_bDestroyAllSprites = true;
+				}
+			}
 		}
 	}
 	
 	public void Clear()
 	{
-		if (m_myTexture2D != null) {
-			Color clearColor = Color.white;
-			clearColor.a = 0.0f;
-			Clear(this.m_myTexture2D, 0, clearColor);
+		if (m_myBackground != null) {
+			Copy(m_myBackground, m_myTexture);
+		}
+		else {
+			if (m_myTexture2D != null) {
+				Color clearColor = Color.white;
+				clearColor.a = 0.0f;
+				Clear(this.m_myTexture2D, 0, clearColor);
+			}
 		}
 	}
 	
@@ -355,6 +388,33 @@ public class Layer : MonoBehaviour
 	
 	    // actually apply all SetPixels, don't recalculate mip levels
 	    texture.Apply( false );
+	}
+	
+	void Copy(Texture2D dest, Texture src)
+	{
+		Texture2D src2D = src as Texture2D;
+		if (src2D != null) {
+			Copy(dest, src2D);
+		}
+		else {
+			RenderTexture srcRT = src as RenderTexture;
+			if (srcRT != null) {
+				Copy(dest, srcRT);
+			}
+		}
+	}
+	
+	void Copy(Texture2D dest, Texture2D src)
+	{
+		Color[] colors = src.GetPixels();
+		dest.SetPixels(colors);
+	}
+	
+	void Copy(Texture2D dest, RenderTexture src)
+	{
+		RenderTexture.active = src;
+		dest.ReadPixels(new Rect(0, 0, src.width, src.height), 0, 0);
+		dest.Apply();
 	}
 	
 	// Update is called once per frame
@@ -380,5 +440,6 @@ public class Layer : MonoBehaviour
 			m_brushColor = color_palette[m_curColorIndex];
 		}
 		*/
-	}
+		DestroyAllSprites();
+	}	
 }
