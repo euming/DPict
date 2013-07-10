@@ -19,6 +19,7 @@ public class Layer : MonoBehaviour
 	int					m_frameCounter;
 	bool				m_bIsDrawing;
 	float				m_BrushLineDensity = 3.5f;
+	bool				m_bIsSubscriberOfTouchListener;
 	
 	List<GameObject>	m_spriteList = new List<GameObject>();
 	
@@ -64,6 +65,17 @@ public class Layer : MonoBehaviour
 		m_prevPoints = new Vector3[m_maxPoints];
 	    renderer.material.mainTexture = InstantiateTexture();
 		Clear();
+		
+		//	determine whether we are a subscriber to a touch listener which will be sending us the Mouse messages in lieu of Unity's messages
+		m_bIsSubscriberOfTouchListener = false;
+		Subscriber sub = this.GetComponent<Subscriber>();
+		if (sub != null) {
+			Publisher pub = sub.GetPublisher();
+			TouchListener tl = pub.GetComponent<TouchListener>();
+			if (tl != null) {
+				m_bIsSubscriberOfTouchListener = true;
+			}
+		}
 	}
 	
 	Texture InstantiateTexture()
@@ -139,7 +151,22 @@ public class Layer : MonoBehaviour
 		DrawSegments();
 		m_bIsDrawing = false;
 	}
-
+	
+	public void OnMouseDown()
+	{
+		//	if I'm a subscriber and my publisher is a TouchListener, then ignore this message because I'll already get one from my publisher.
+		if (!m_bIsSubscriberOfTouchListener) {
+			OnMouseDownListener(0);
+		}
+	}
+	
+	public void OnMouseUp()
+	{
+		if (!m_bIsSubscriberOfTouchListener) {
+			OnMouseUpListener(0);
+		}
+	}
+	
 	/*
 	public void OnMouseEnterListener(int buttonNo)
 	{

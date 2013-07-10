@@ -412,6 +412,7 @@ GameObject:
   - 20: {fileID: 311575339}
   - 114: {fileID: 311575340}
   - 114: {fileID: 311575341}
+  - 114: {fileID: 311575342}
   m_Layer: 8
   m_Name: Render Camera
   m_TagString: OrthoCamera
@@ -471,6 +472,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2d3483b65c5f970418d18475abcdd1e5, type: 1}
   m_Name: 
+  m_bOnlySendToSubscribers: 1
 --- !u!114 &311575341
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -482,6 +484,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7f58a6387cef024eae67f7bf0c11d41, type: 1}
   m_Name: 
   m_BakeTo: {fileID: 2800000, guid: aefca7e4cd4dee8468204ed8ae9ffd9e, type: 1}
+--- !u!114 &311575342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 311575337}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 836324949c6642543a36d6ef21fd7146, type: 1}
+  m_Name: 
+  m_SubscriberList:
+  - {fileID: 1060638558}
 --- !u!1 &567840339
 GameObject:
   m_ObjectHideFlags: 0
@@ -887,6 +901,7 @@ GameObject:
   - 23: {fileID: 1060638554}
   - 114: {fileID: 1060638557}
   - 65: {fileID: 1060638556}
+  - 114: {fileID: 1060638558}
   m_Layer: 8
   m_Name: Background
   m_TagString: DrawingLayer
@@ -960,6 +975,19 @@ MonoBehaviour:
   m_RenderCamera: {fileID: 311575339}
   m_bFastRender: 1
   m_myBrush: {fileID: 1903378702}
+--- !u!114 &1060638558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1060638552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e6061da7890ebb40b62f3bdfe2adb6d, type: 1}
+  m_Name: 
+  m_myPublisher: {fileID: 311575342}
+  m_MessageFilter: 
+  m_MethodFilter: 
 --- !u!43 &1119324128
 Mesh:
   m_ObjectHideFlags: 0

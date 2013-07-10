@@ -26,6 +26,7 @@ using UnityEngine;
 [AddComponentMenu ("GUI/TouchListener (Camera)")]
 public class TouchListener : MonoBehaviour
 {
+	public 	bool			m_bOnlySendToSubscribers = false;	//	if true, only send to Subscribers
 	private Camera			m_camera;
 	private GameObject[]	m_currentlyTouchedGO = {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null};	//	16 slots. 7 wasn't enough!
 	//private	Publisher		m_myPublisher;
@@ -37,6 +38,18 @@ public class TouchListener : MonoBehaviour
 		m_camera = GetComponent<Camera>();
 		//m_myPublisher = GetComponent<Publisher>();
 		bTouchEnabled = Input.multiTouchEnabled;
+	}
+	
+	bool isSubscriber(GameObject go)
+	{
+		bool	bIsSub = false;
+		Publisher pub = this.GetComponent<Publisher>();
+		if (pub != null) {
+			if (pub.isSubscriber(go)) {
+				bIsSub = true;
+			}
+		}
+		return bIsSub;
 	}
 	
 	/*
@@ -100,14 +113,23 @@ public class TouchListener : MonoBehaviour
 			}
 			
 			if (m_currentlyTouchedGO[fingerID] != null) {
-				if (buttonEnterExitMsg != null) {
-					m_currentlyTouchedGO[fingerID].SendMessage(buttonEnterExitMsg);
+				bool bSendMessage = true;	//	default is to send to everybody
+				if (m_bOnlySendToSubscribers) {	//	sometimes, we only want to send this message to subscribers
+					bSendMessage = false;	//	if we send only to subscribers, the default is that we don't send unless we know for sure our target is a subscriber
+					if (isSubscriber(m_currentlyTouchedGO[fingerID])) {
+						bSendMessage = true;
+					}
 				}
-				if (buttonMsg != null) {
-					m_currentlyTouchedGO[fingerID].SendMessage(buttonMsg);
-				}
-				if (bForgetButton) {
-					m_currentlyTouchedGO[fingerID] = null;
+				if (bSendMessage) {
+					if (buttonEnterExitMsg != null) {
+						m_currentlyTouchedGO[fingerID].SendMessage(buttonEnterExitMsg);
+					}
+					if (buttonMsg != null) {
+						m_currentlyTouchedGO[fingerID].SendMessage(buttonMsg);
+					}
+					if (bForgetButton) {
+						m_currentlyTouchedGO[fingerID] = null;
+					}
 				}
 			}
 		}
@@ -137,8 +159,15 @@ public class TouchListener : MonoBehaviour
 			RaycastHit hit;
 			hitGO = null;
 			
+			bool bSendMessage = true;	//	default is to send to everybody
 			if (Physics.Raycast(ray, out hit)) {
 				hitGO = hit.transform.gameObject;	//	if we touched something
+				if (m_bOnlySendToSubscribers) {	//	sometimes, we only want to send this message to subscribers
+					bSendMessage = false;	//	if we send only to subscribers, the default is that we don't send unless we know for sure our target is a subscriber
+					if (isSubscriber(hitGO)) {
+						bSendMessage = true;
+					}
+				}
 			}
 
 			//	something changed from last frame
@@ -148,9 +177,11 @@ public class TouchListener : MonoBehaviour
 					Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseExit("+ ii+")" + m_currentlyTouchedGO[ii].name);
 				}
 				if (hitGO != null) {
-					m_currentlyTouchedGO[ii] = hitGO;
-					m_currentlyTouchedGO[ii].SendMessage("OnMouseEnterListener", ii, SendMessageOptions.DontRequireReceiver);
-					Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseEnter("+ ii+")" + m_currentlyTouchedGO[ii].name);
+					if (bSendMessage) {
+						m_currentlyTouchedGO[ii] = hitGO;
+						m_currentlyTouchedGO[ii].SendMessage("OnMouseEnterListener", ii, SendMessageOptions.DontRequireReceiver);
+						Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseEnter("+ ii+")" + m_currentlyTouchedGO[ii].name);
+					}
 				}
 				else {
 					bForgetButton = true;
@@ -177,7 +208,9 @@ public class TouchListener : MonoBehaviour
 				
 				if (m_currentlyTouchedGO[ii] != null) {
 					if (buttonMsg != null) {
-						hitGO.SendMessage(buttonMsg, ii, SendMessageOptions.DontRequireReceiver);
+						if (bSendMessage) {
+							hitGO.SendMessage(buttonMsg, ii, SendMessageOptions.DontRequireReceiver);
+						}
 					}
 				}
 			}

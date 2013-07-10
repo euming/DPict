@@ -64,7 +64,7 @@ public class Publisher : MonoBehaviour
 	
 	public void AddSubscriber(Subscriber sb)
 	{
-		if (!m_SubscriberList.Find(o => o == sb))
+		if (!isSubscriber(sb))
 			m_SubscriberList.Add(sb);
 	}
 	
@@ -72,5 +72,23 @@ public class Publisher : MonoBehaviour
 	{
 		m_SubscriberList.Remove(sb);
 		m_SubscriberList.TrimExcess();
+	}
+	
+	public bool isSubscriber(Subscriber sb)
+	{
+		bool bIsSub = m_SubscriberList.Find(o => o == sb);
+		return bIsSub;
+	}
+	
+	public bool isSubscriber(GameObject go)
+	{
+		bool bIsSub = false;
+		Subscriber sub = go.GetComponent<Subscriber>();
+		if (sub != null) {
+			if (isSubscriber(sub)) {
+				bIsSub = true;
+			}
+		}
+		return bIsSub;
 	}
 }

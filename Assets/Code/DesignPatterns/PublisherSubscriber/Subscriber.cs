@@ -46,6 +46,11 @@ public class Subscriber : MonoBehaviour
 		m_myPublisher = p;
 	}
 	
+	public Publisher GetPublisher()
+	{
+		return m_myPublisher;
+	}
+	
 	public void BindToInstances()
 	{
 		if (m_myPublisher != null) {
