@@ -31,13 +31,18 @@ public class TouchListener : MonoBehaviour
 	private GameObject[]	m_currentlyTouchedGO = {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null};	//	16 slots. 7 wasn't enough!
 	//private	Publisher		m_myPublisher;
 	
-	bool	bTouchEnabled;
+	bool	m_bTouchEnabled;
 	
 	void Awake()
 	{
 		m_camera = GetComponent<Camera>();
 		//m_myPublisher = GetComponent<Publisher>();
-		bTouchEnabled = Input.multiTouchEnabled;
+		m_bTouchEnabled = Input.multiTouchEnabled;
+	}
+	
+	public bool isTouchEnabled()
+	{
+		return m_bTouchEnabled;
 	}
 	
 	bool isSubscriber(GameObject go)
@@ -224,7 +229,7 @@ public class TouchListener : MonoBehaviour
 
 	void Update()
 	{
-		if (bTouchEnabled) {
+		if (m_bTouchEnabled) {
 			TouchTapSelect();
 		}
 		else {

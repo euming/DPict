@@ -73,7 +73,9 @@ public class Layer : MonoBehaviour
 			Publisher pub = sub.GetPublisher();
 			TouchListener tl = pub.GetComponent<TouchListener>();
 			if (tl != null) {
-				m_bIsSubscriberOfTouchListener = true;
+				if (!tl.isTouchEnabled()) {
+					m_bIsSubscriberOfTouchListener = true;
+				}
 			}
 		}
 	}
