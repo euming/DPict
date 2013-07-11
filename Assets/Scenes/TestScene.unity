@@ -903,7 +903,7 @@ GameObject:
   - 114: {fileID: 1060638557}
   - 65: {fileID: 1060638556}
   - 114: {fileID: 1060638558}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Background
   m_TagString: DrawingLayer
   m_Icon: {fileID: 0}
