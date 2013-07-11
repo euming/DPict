@@ -332,7 +332,7 @@ public class Layer : MonoBehaviour
 		if (m_bDestroyAllSprites == true) {
 			foreach(GameObject go in m_spriteList)
 			{
-				Destroy(go, 1.0f/ 30.0f);
+				Destroy(go, 1.0f/ 20.0f);
 			}
 			m_spriteList.Clear();
 		}
@@ -350,6 +350,7 @@ public class Layer : MonoBehaviour
 		
 	}
 	
+	int		m_bakeEveryNFrames = 4;
 	public void DrawSegments()
 	{
 		int		buffer = 2;
@@ -377,8 +378,15 @@ public class Layer : MonoBehaviour
 			m_spriteList.Add(spriteGO);
 			*/
 			InterpolatePreviousPoints(m_maxPoints-buffer-nSegments, m_maxPoints-buffer);
-
-			if (this.m_RenderCamera != null) {
+			//Bake();
+		}
+	}
+	
+	void Bake()
+	{
+		if (this.m_RenderCamera != null) {
+			int curFrameNo = Time.frameCount;
+			if (curFrameNo%m_bakeEveryNFrames==0) {
 				LayerBake baker = m_RenderCamera.GetComponent<LayerBake>();
 				if (baker != null) {
 					baker.Dirty();
@@ -470,5 +478,6 @@ public class Layer : MonoBehaviour
 		}
 		*/
 		DestroyAllSprites();
+		Bake();
 	}	
 }

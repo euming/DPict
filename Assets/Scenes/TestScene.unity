@@ -484,6 +484,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7f58a6387cef024eae67f7bf0c11d41, type: 1}
   m_Name: 
   m_BakeTo: {fileID: 2800000, guid: aefca7e4cd4dee8468204ed8ae9ffd9e, type: 1}
+  m_bFastBake: 1
 --- !u!114 &311575342
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -902,7 +903,7 @@ GameObject:
   - 114: {fileID: 1060638557}
   - 65: {fileID: 1060638556}
   - 114: {fileID: 1060638558}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Background
   m_TagString: DrawingLayer
   m_Icon: {fileID: 0}

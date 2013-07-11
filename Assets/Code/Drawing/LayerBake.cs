@@ -22,22 +22,37 @@ public class LayerBake : MonoBehaviour
 {
 	public Texture2D	m_BakeTo;
 	bool				m_bBake;
+	public bool			m_bFastBake = true;
 	
 	public void Dirty()
 	{
 		m_bBake = true;
 	}
 	
-	void Bake()
+	void BakeSlow()
 	{
         if (m_bBake) {
-            m_BakeTo.ReadPixels(new Rect(0, 0, m_BakeTo.width, m_BakeTo.height), 0, 0);
+			//	this is too slow. Need a way to do this copy of FrameBuffer to BakeTo in hardware.
+            m_BakeTo.ReadPixels(new Rect(0, 0, m_BakeTo.width, m_BakeTo.height), 0, 0);	//	Reads the rectangle from the camera's RenderTexture into this texture.
             m_BakeTo.Apply();
             m_bBake = false;
         }
 	}
+	
+	void BakeFast()
+	{
+        if (m_bBake) {
+            m_bBake = false;
+		}
+	}
+	
 	void OnPostRender()
 	{
-		Bake();
+		if (m_bFastBake) {
+			BakeFast();
+		}
+		else {
+			BakeSlow();
+		}
 	}
 }
