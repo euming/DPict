@@ -212,6 +212,7 @@ MonoBehaviour:
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}
   m_bFastRender: 0
+  m_bStretchSpriteRender: 1
   m_myBrush: {fileID: 120915132}
 --- !u!114 &120915132
 MonoBehaviour:
@@ -281,7 +282,7 @@ Camera:
   m_Depth: 100
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 257
   m_RenderingPath: 0
   m_TargetTexture: {fileID: 0}
   m_HDR: 0
@@ -795,6 +796,7 @@ MonoBehaviour:
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}
   m_bFastRender: 0
+  m_bStretchSpriteRender: 1
   m_myBrush: {fileID: 733306006}
 --- !u!1 &829509541
 GameObject:
@@ -975,6 +977,7 @@ MonoBehaviour:
   m_textureHeight: 1024
   m_RenderCamera: {fileID: 311575339}
   m_bFastRender: 1
+  m_bStretchSpriteRender: 1
   m_myBrush: {fileID: 1903378702}
 --- !u!114 &1060638558
 MonoBehaviour:
@@ -1740,6 +1743,7 @@ MonoBehaviour:
   m_textureHeight: 1024
   m_RenderCamera: {fileID: 311575339}
   m_bFastRender: 1
+  m_bStretchSpriteRender: 1
   m_myBrush: {fileID: 1903378702}
 --- !u!1 &1654664521
 GameObject:
@@ -2224,4 +2228,5 @@ MonoBehaviour:
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}
   m_bFastRender: 0
+  m_bStretchSpriteRender: 1
   m_myBrush: {fileID: 1903378702}

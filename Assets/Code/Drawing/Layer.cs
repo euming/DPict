@@ -27,6 +27,7 @@ public class Layer : MonoBehaviour
 	
 	//	use slow render for brushes and other things that need to directly modify the texture
 	public bool m_bFastRender = true;	//	uses polygons rather than direct texture access to draw brushes
+	public bool m_bStretchSpriteRender = true;	//	stretch a brush across the space between user input points
 	
 	/*
 	//	brush stuff
@@ -247,30 +248,36 @@ public class Layer : MonoBehaviour
 	
 	void InterpolatePreviousPoints(int idx0, int idx1)
 	{
-		Vector3 newPt;
+		Vector3 newPt, prevPt;
 		float fBrushWidth = (float)m_myBrush.GetBrushSize();
 		
 		float	interpolationAmount = 0.1f;
 		float 	distBetweenPts;
 		float	nInterpolations;
 		
-		for(int ii=idx0; ii<idx1; ii++) {
-			for(float p=0.0f; p<1.0f; p+=interpolationAmount) {
-				distBetweenPts = Vector3.Distance(m_prevPoints[ii], m_prevPoints[ii+1]);
-				nInterpolations = m_BrushLineDensity * distBetweenPts / fBrushWidth;
-				if (nInterpolations == 0) {
-					nInterpolations = 1;
-					interpolationAmount = 1.0f;
-				}
-				else {
-					interpolationAmount = 1.0f / nInterpolations;
-				}
-				newPt = Vector3.Lerp(m_prevPoints[ii], m_prevPoints[ii+1], p);
-				if (this.m_bFastRender == true) {
-					CreateBrushGO(m_myBrush, newPt);
-				}
-				else {
-					PaintBrush(newPt, m_myBrush);
+		for(int ii=idx0; ii<idx1; ii++) {		//	actual points
+			if (m_bStretchSpriteRender) {
+				CreateStretchedBrushGO(m_myBrush, m_prevPoints[ii], m_prevPoints[ii+1]);
+			}
+			else {
+				for(float p=0.0f; p<1.0f; p+=interpolationAmount) {	//	interpolation between points
+					distBetweenPts = Vector3.Distance(m_prevPoints[ii], m_prevPoints[ii+1]);
+					nInterpolations = m_BrushLineDensity * distBetweenPts / fBrushWidth;
+					if (nInterpolations == 0) {
+						nInterpolations = 1;
+						interpolationAmount = 1.0f;
+					}
+					else {
+						interpolationAmount = 1.0f / nInterpolations;	//	make sure there's enough to fill in-between spaces.
+					}
+					newPt = Vector3.Lerp(m_prevPoints[ii], m_prevPoints[ii+1], p);
+					if (this.m_bFastRender == true) {
+						CreateBrushGO(m_myBrush, newPt);
+					}
+					else {
+						PaintBrush(newPt, m_myBrush);
+					}
+					prevPt = newPt;
 				}
 			}
 		}
@@ -347,7 +354,32 @@ public class Layer : MonoBehaviour
 		spriteGO.layer = this.gameObject.layer;
 		m_spriteList.Add(spriteGO);
 		return spriteGO;
+	}
+	
+	GameObject CreateStretchedBrushGO(Brush brush, Vector3 endPt1, Vector3 endPt2)
+	{
+		Vector3 midPt = (endPt1 + endPt2) / 2.0f;
+		Vector3 diffPt = endPt2 - endPt1;
+		float len = diffPt.magnitude;		//	difference between pt1 and pt2.
+		GameObject spriteGO = CreateBrushGO(brush, midPt);
+		Transform xform = spriteGO.transform;
+		//	figure out the rotation
+		float angle = Mathf.Atan2(diffPt.normalized.y, diffPt.normalized.x);
+		if (angle != 0.0f) {
+			Vector3 newEulerAngles = Vector3.zero;
+			newEulerAngles.z = angle * Mathf.Rad2Deg;
+			spriteGO.transform.localEulerAngles = newEulerAngles;
+		}
 		
+		//	figure out the scale
+		Vector3 newScale = spriteGO.transform.localScale;
+		len = len/20.0f;
+		float scale = len;			//	scale should be 1.0, not 0.0 if pt1 and pt2 are the same.
+		if (scale < 1.0f)
+			scale = 1.0f;
+		newScale.x = scale;
+		spriteGO.transform.localScale = newScale;
+		return spriteGO;
 	}
 	
 	int		m_bakeEveryNFrames = 4;
