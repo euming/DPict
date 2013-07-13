@@ -55,9 +55,10 @@ public class LayerBake : MonoBehaviour
 					Graphics.Blit(activeRT, bakeToRT);
 				}
 				else {
+					//	I still don't know how this works
 					Rect screenRect = new Rect(0, 0, 256, 256);
 				
-					Graphics.DrawTexture(screenRect, bakeToRT);
+					Graphics.DrawTexture(screenRect, activeRT);
 				}
 	            m_bBake = false;
 			}

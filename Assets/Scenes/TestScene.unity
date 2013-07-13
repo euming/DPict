@@ -212,7 +212,7 @@ MonoBehaviour:
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}
   m_bFastRender: 0
-  m_bStretchSpriteRender: 1
+  m_bStretchSpriteRender: 0
   m_myBrush: {fileID: 120915132}
 --- !u!114 &120915132
 MonoBehaviour:
@@ -796,7 +796,7 @@ MonoBehaviour:
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}
   m_bFastRender: 0
-  m_bStretchSpriteRender: 1
+  m_bStretchSpriteRender: 0
   m_myBrush: {fileID: 733306006}
 --- !u!1 &829509541
 GameObject:
@@ -2292,5 +2292,5 @@ MonoBehaviour:
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}
   m_bFastRender: 0
-  m_bStretchSpriteRender: 1
+  m_bStretchSpriteRender: 0
   m_myBrush: {fileID: 1903378702}
