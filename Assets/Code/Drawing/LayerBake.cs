@@ -20,7 +20,7 @@ using System.Collections;
 [AddComponentMenu ("DPict/LayerBake")]
 public class LayerBake : MonoBehaviour 
 {
-	public Texture2D	m_BakeTo;
+	public Texture		m_BakeTo;
 	bool				m_bBake;
 	public bool			m_bFastBake = true;
 	
@@ -32,23 +32,42 @@ public class LayerBake : MonoBehaviour
 	void BakeSlow()
 	{
         if (m_bBake) {
-			//	this is too slow. Need a way to do this copy of FrameBuffer to BakeTo in hardware.
-            m_BakeTo.ReadPixels(new Rect(0, 0, m_BakeTo.width, m_BakeTo.height), 0, 0);	//	Reads the rectangle from the camera's RenderTexture into this texture.
-            m_BakeTo.Apply();
-            m_bBake = false;
+			Texture2D bakeTo2D = m_BakeTo as Texture2D;
+			if (bakeTo2D != null) {
+				//	this is too slow. Need a way to do this copy of FrameBuffer to BakeTo in hardware.
+	            bakeTo2D.ReadPixels(new Rect(0, 0, m_BakeTo.width, m_BakeTo.height), 0, 0);	//	Reads the rectangle from the camera's RenderTexture into this texture.
+	            bakeTo2D.Apply();
+	            m_bBake = false;
+			}
         }
 	}
 	
 	void BakeFast()
 	{
         if (m_bBake) {
-            m_bBake = false;
+			RenderTexture activeRT = RenderTexture.active;	//	current render target
+			int nRenderTargets = SystemInfo.supportedRenderTargetCount;
+			RenderTexture bakeToRT = m_BakeTo as RenderTexture;
+			if (bakeToRT != null) {
+				bool bTestFullScreenBlit = true;
+				if (bTestFullScreenBlit) {
+				//	src, dest
+					Graphics.Blit(activeRT, bakeToRT);
+				}
+				else {
+					Rect screenRect = new Rect(0, 0, 256, 256);
+				
+					Graphics.DrawTexture(screenRect, bakeToRT);
+				}
+	            m_bBake = false;
+			}
 		}
 	}
 	
 	void OnPostRender()
 	{
 		if (m_bFastBake) {
+			//	m_bBake = true;
 			BakeFast();
 		}
 		else {

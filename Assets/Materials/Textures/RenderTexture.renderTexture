@@ -10,7 +10,6 @@ RenderTexture:
   m_Height: 1024
   m_DepthFormat: 0
   m_ColorFormat: 0
-  m_IsCubemap: 0
   m_MipMap: 0
   m_SRGB: 0
   m_TextureSettings:
