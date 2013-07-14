@@ -42,17 +42,18 @@ public class LayerBake : MonoBehaviour
         }
 	}
 	
-	void BakeFast()
+	void BakeFast(RenderTexture src, RenderTexture dst)
 	{
         if (m_bBake) {
 			RenderTexture activeRT = RenderTexture.active;	//	current render target
-			int nRenderTargets = SystemInfo.supportedRenderTargetCount;
-			RenderTexture bakeToRT = m_BakeTo as RenderTexture;
-			if (bakeToRT != null) {
+			//	int nRenderTargets = SystemInfo.supportedRenderTargetCount;
+			if (dst != null) {
 				bool bTestFullScreenBlit = true;
 				if (bTestFullScreenBlit) {
-				//	src, dest
-					Graphics.Blit(activeRT, bakeToRT);
+					//	src, dest
+					//camera.targetTexture = null;
+					Graphics.Blit(src, dst);	//	very slow. 322.84 ms on iPad 3
+					//camera.targetTexture = activeRT;
 				}
 				else {
 					//	I still don't know how this works
@@ -65,11 +66,26 @@ public class LayerBake : MonoBehaviour
 		}
 	}
 	
-	void OnPostRender()
+	/*
+	void UpdateTextureCPP( int nativeTexID )
+	{
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		glBindTexture(GL_TEXTURE_2D, nativeTexID);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, im->data());
+	}
+	*/
+#if UNITY_IPHONE
+	[DllImport ("__Internal")]
+	public static extern void UpdateTextureCPP(int nativeTexID);
+#endif
+	
+	//void OnPostRender()
+	void OnRenderImage(RenderTexture src, RenderTexture dst)
 	{
 		if (m_bFastBake) {
 			//	m_bBake = true;
-			BakeFast();
+			RenderTexture bakeToRT = m_BakeTo as RenderTexture;
+			BakeFast(src, bakeToRT);
 		}
 		else {
 			BakeSlow();
