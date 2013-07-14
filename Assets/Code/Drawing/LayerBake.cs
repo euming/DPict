@@ -79,13 +79,14 @@ public class LayerBake : MonoBehaviour
 	public static extern void UpdateTextureCPP(int nativeTexID);
 #endif
 	
-	//void OnPostRender()
-	void OnRenderImage(RenderTexture src, RenderTexture dst)
+	void OnPostRender()
+	//void OnRenderImage(RenderTexture src, RenderTexture dst)
 	{
 		if (m_bFastBake) {
 			//	m_bBake = true;
 			RenderTexture bakeToRT = m_BakeTo as RenderTexture;
-			BakeFast(src, bakeToRT);
+			RenderTexture activeRT = RenderTexture.active; 
+			BakeFast(activeRT, bakeToRT);
 		}
 		else {
 			BakeSlow();
