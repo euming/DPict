@@ -41,6 +41,9 @@ public class Layer : MonoBehaviour
 	
 	public Brush		m_myBrush;
 	
+	//	debugging stuff
+	public bool			m_bDrawEndPts = true;
+	
 	static Layer		m_currentLayer;
 	static List<Layer>	m_layerList = new List<Layer>();
 	
@@ -365,8 +368,8 @@ public class Layer : MonoBehaviour
 		Sprite3D sprite = spriteGO.GetComponent<Sprite3D>();		//	scale of each sprite is 1.0 with xmin=-0.5, xmax=0.5
 		Vector2		uvMin, uvMax;
 		
-		uvMin = new Vector2(0.49f,0);	//	use the center of the brush for the stretch
-		uvMax = new Vector2(0.51f,1);
+		uvMin = new Vector2(0.50f,0);	//	use the center of the brush for the stretch
+		uvMax = new Vector2(0.50f,1);
 		sprite.SetUVs(uvMin, uvMax);
 		Transform xform = spriteGO.transform;
 		//	figure out the rotation
@@ -380,21 +383,23 @@ public class Layer : MonoBehaviour
 		//	figure out the scale
 		Vector3 newScale = spriteGO.transform.localScale;
 		float spriteWidth = sprite.m_Texture.width;
-		len -= 1;
+		len -= 2.0f;
 		len /= spriteWidth;
 		float scale = len;			//	scale should be 1.0, not 0.0 if pt1 and pt2 are the same.
 		if (scale < 0.0f)
-			scale = 0.0f;
+			scale = 0.01f;
 		newScale.x = scale;
 		spriteGO.transform.localScale = newScale;
 		
 		//	now create two dots at the endpoints
-		CreateBrushGO(brush, endPt1);
-		CreateBrushGO(brush, endPt2);
+		if (m_bDrawEndPts) {
+			CreateBrushGO(brush, endPt1);
+			//CreateBrushGO(brush, endPt2);
+		}
 		return spriteGO;
 	}
 	
-	int		m_bakeEveryNFrames = 4;
+	int		m_bakeEveryNFrames = 1;
 	public void DrawSegments()
 	{
 		int		buffer = 2;
