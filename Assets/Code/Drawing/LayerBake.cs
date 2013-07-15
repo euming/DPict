@@ -95,7 +95,8 @@ public class LayerBake : MonoBehaviour
 #if UNITY_IPHONE
 			int bakeToTextureID = bakeToRT.GetNativeTextureID();
 			int srcTextureID = activeRT.GetNativeTextureID();
-			UpdateTextureCPP(srcTextureID, bakeToTextureID);
+			//UpdateTextureCPP(srcTextureID, bakeToTextureID);
+			BakeFast(activeRT, bakeToRT);
 #else
 			BakeFast(activeRT, bakeToRT);
 #endif
