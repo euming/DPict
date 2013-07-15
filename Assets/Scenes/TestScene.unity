@@ -1768,7 +1768,7 @@ GameObject:
   - 114: {fileID: 1599190800}
   m_Layer: 8
   m_Name: Background1024
-  m_TagString: Untagged
+  m_TagString: DrawingLayer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

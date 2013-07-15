@@ -245,6 +245,24 @@ public class Sprite3D : MonoBehaviour
 			}
 		}
 	}
+
+	/*
+				kQuadUVs[0] = new Vector2(1, 0);
+				kQuadUVs[1] = new Vector2(0, 0);
+				kQuadUVs[2] = new Vector2(0, 1);
+				kQuadUVs[3] = new Vector2(1, 1);
+	*/
+	public void SetUVs(Vector2 uvmin, Vector2 uvmax)
+	{
+		Vector2[] newUVs = new Vector2[4];
+		newUVs[0] = new Vector2(uvmax.x, uvmin.y);
+		newUVs[1] = new Vector2(uvmin.x, uvmin.y);
+		newUVs[2] = new Vector2(uvmin.x, uvmax.y);
+		newUVs[3] = new Vector2(uvmax.x, uvmax.y);
+		
+		m_Quad.uv = newUVs;
+	}
+	
 	/*
 	public void AdjustUVs()
 	{
