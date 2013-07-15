@@ -186,7 +186,11 @@ public class Sprite3D : MonoBehaviour
 		//MeshRenderer mr = GetComponent<MeshRenderer>();
 		//Shader shader = Shader.Find("Unlit/Texture");
 		if (this.renderer.sharedMaterial == null) {	//	maintain previous material if possible. This allows us to add the Sprite3D component to existing geometry
-			this.renderer.sharedMaterial = new Material(Shader.Find("Unlit/Transparent"));
+			Shader mobileShader = Shader.Find("Mobile/Transparent/Brush");
+			if (mobileShader == null) {
+				mobileShader = Shader.Find("Unlit/Transparent");	//	fallback default shader
+			}
+			this.renderer.sharedMaterial = new Material(mobileShader);
 		}
 		//	NOTE: Should use "Unlit/Texture" for non-transparent textures for maximum efficiency
 		this.renderer.castShadows = false;

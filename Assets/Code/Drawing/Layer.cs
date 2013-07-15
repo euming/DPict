@@ -394,7 +394,7 @@ public class Layer : MonoBehaviour
 		//	now create two dots at the endpoints
 		if (m_bDrawEndPts) {
 			CreateBrushGO(brush, endPt1);
-			//CreateBrushGO(brush, endPt2);
+			CreateBrushGO(brush, endPt2);
 		}
 		return spriteGO;
 	}
