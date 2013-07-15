@@ -24,6 +24,12 @@ public class LayerBake : MonoBehaviour
 	bool				m_bBake;
 	public bool			m_bFastBake = true;
 	
+	void Awake()
+	{
+		m_BakeTo.filterMode = FilterMode.Point;
+		m_BakeTo.anisoLevel = 1;
+	}
+	
 	public void Dirty()
 	{
 		m_bBake = true;
@@ -75,17 +81,24 @@ public class LayerBake : MonoBehaviour
 	}
 	*/
 #if UNITY_IPHONE
-	[DllImport ("__Internal")]
-	public static extern void UpdateTextureCPP(int nativeTexID);
+	[System.Runtime.InteropServices.DllImport ("__Internal")]
+	public static extern void UpdateTextureCPP(int srcNativeTexID, int dstNativeTexID);
 #endif
 	
-	//void OnPostRender()
-	void OnRenderImage(RenderTexture src, RenderTexture dst)
+	void OnPostRender()
+	//void OnRenderImage(RenderTexture src, RenderTexture dst)
 	{
 		if (m_bFastBake) {
 			//	m_bBake = true;
 			RenderTexture bakeToRT = m_BakeTo as RenderTexture;
-			BakeFast(src, bakeToRT);
+			RenderTexture activeRT = RenderTexture.active; 
+#if UNITY_IPHONE
+			int bakeToTextureID = bakeToRT.GetNativeTextureID();
+			int srcTextureID = activeRT.GetNativeTextureID();
+			UpdateTextureCPP(srcTextureID, bakeToTextureID);
+#else
+			BakeFast(activeRT, bakeToRT);
+#endif
 		}
 		else {
 			BakeSlow();
