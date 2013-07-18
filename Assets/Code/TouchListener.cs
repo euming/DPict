@@ -38,7 +38,7 @@ public class TouchListener : MonoBehaviour
 		m_camera = GetComponent<Camera>();
 		//m_myPublisher = GetComponent<Publisher>();
 		m_bTouchEnabled = Input.multiTouchEnabled;
-		Rlplog.DbgFlag = true;
+		//	Rlplog.DbgFlag = true;
 	}
 	
 	public bool isTouchEnabled()
