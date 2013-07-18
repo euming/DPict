@@ -2700,7 +2700,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1903378697}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 334e5ee32fd5a1e4685bc01580e79e14, type: 3}
   m_Name: 
@@ -2710,7 +2710,7 @@ MonoBehaviour:
   m_textureWidth: 0
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}
-  m_bFastRender: 1
+  m_bFastRender: 0
   m_bStretchSpriteRender: 0
   m_myBrush: {fileID: 1903378702}
   m_bDrawEndPts: 0
