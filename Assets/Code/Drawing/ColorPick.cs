@@ -20,6 +20,7 @@ public class ColorPick : MonoBehaviour
 	bool				m_bIsInvertedColor = false;
 	float				m_timeHeld = 0.0f;
 	float				m_unselectTime;			//	the time at which we stop selecting this.
+	bool				m_bIsSubscriberOfTouchListener;
 	
 	public void Awake()
 	{
@@ -33,6 +34,9 @@ public class ColorPick : MonoBehaviour
 			m_myCamera = camGO.camera;
 		DeactivateGradient();
 		m_ColorsPicked = 0;
+
+		//	determine whether we are a subscriber to a touch listener which will be sending us the Mouse messages in lieu of Unity's messages
+		m_bIsSubscriberOfTouchListener = TouchListener.isSubscriberOfTouchListener(this.gameObject);
 	}
 	
 	Color InvertColor(Color color)
@@ -44,7 +48,40 @@ public class ColorPick : MonoBehaviour
 		return outColor;
 	}
 	
-	void OnMouseDown()
+	public void OnMouseDownListener(int buttonNo)
+	{
+		if (this.enabled) {
+			OnTouchDown();
+		}
+	}
+	
+	public void OnMouseUpListener(int buttonNo)
+	{
+		if (this.enabled) {
+			OnTouchUp();
+		}
+	}
+	
+	public void OnMouseDown()
+	{
+		if (this.enabled) {
+			//	if I'm a subscriber and my publisher is a TouchListener, then ignore this message because I'll already get one from my publisher.
+			if (!m_bIsSubscriberOfTouchListener) {
+				OnMouseDownListener(0);
+			}
+		}
+	}
+	
+	public void OnMouseUp()
+	{
+		if (this.enabled) {
+			if (!m_bIsSubscriberOfTouchListener) {
+				OnMouseUpListener(0);
+			}
+		}
+	}
+	
+	void OnTouchDown()
 	{
 		m_ColorsPicked++;
 		m_bSelecting = true;
@@ -52,7 +89,7 @@ public class ColorPick : MonoBehaviour
 		m_unselectTime = Time.time + m_releaseTime;
 	}
 	
-	public void OnMouseUp()
+	void OnTouchUp()
 	{
 		m_ColorsPicked--;
 		//Color color = PickColor();

@@ -73,18 +73,7 @@ public class Layer : MonoBehaviour
 		Bake();
 		
 		//	determine whether we are a subscriber to a touch listener which will be sending us the Mouse messages in lieu of Unity's messages
-		m_bIsSubscriberOfTouchListener = false;
-		Subscriber sub = this.GetComponent<Subscriber>();
-		if (sub != null) {
-			Publisher pub = sub.GetPublisher();
-			TouchListener tl = pub.GetComponent<TouchListener>();
-			if (tl != null) {
-				if (!tl.isTouchEnabled()) {
-					m_bIsSubscriberOfTouchListener = true;
-				}
-			}
-		}
-		
+		m_bIsSubscriberOfTouchListener = TouchListener.isSubscriberOfTouchListener(this.gameObject);
 	}
 	
 	Texture InstantiateTexture()

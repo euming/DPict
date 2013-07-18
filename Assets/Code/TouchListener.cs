@@ -58,6 +58,23 @@ public class TouchListener : MonoBehaviour
 		return bIsSub;
 	}
 	
+	//	determine whether we are a subscriber to a touch listener which will be sending us the Mouse messages in lieu of Unity's messages
+	public static bool isSubscriberOfTouchListener(GameObject queriedGO)
+	{
+		bool bIsSubscriberOfTouchListener = false;
+		Subscriber sub = queriedGO.GetComponent<Subscriber>();
+		if (sub != null) {
+			Publisher pub = sub.GetPublisher();
+			TouchListener tl = pub.GetComponent<TouchListener>();
+			if (tl != null) {
+				if (!tl.isTouchEnabled()) {
+					bIsSubscriberOfTouchListener = true;
+				}
+			}
+		}
+		return bIsSubscriberOfTouchListener;
+	}
+	
 	/*
 	 * 	tries to simulate a mouse press. Should handle the case where you press on the button, but then move your finger off the button.
 	 * 	Like the mouse controls, it activates when you release, not when you press.
