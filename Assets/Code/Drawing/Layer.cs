@@ -70,7 +70,7 @@ public class Layer : MonoBehaviour
 	    renderer.material.mainTexture = InstantiateTexture();
 		Clear();
 		
-		Dirty();
+		Bake();
 		
 		//	determine whether we are a subscriber to a touch listener which will be sending us the Mouse messages in lieu of Unity's messages
 		m_bIsSubscriberOfTouchListener = false;
@@ -84,6 +84,7 @@ public class Layer : MonoBehaviour
 				}
 			}
 		}
+		
 	}
 	
 	Texture InstantiateTexture()
@@ -437,8 +438,8 @@ public class Layer : MonoBehaviour
 			m_spriteList.Add(spriteGO);
 			*/
 			InterpolatePreviousPoints(m_maxPoints-buffer-nSegments, m_maxPoints-buffer);
-			//Bake();
-			Dirty();
+			Bake();
+			//Dirty();
 		}
 	}
 	
@@ -447,6 +448,7 @@ public class Layer : MonoBehaviour
 	{
 		m_bDirty = true;
 	}
+	
 	void Bake()
 	{
 		if (this.m_RenderCamera != null) {
@@ -543,9 +545,11 @@ public class Layer : MonoBehaviour
 		}
 		*/
 		DestroyAllSprites();
+		/*
 		if (m_bDirty) {
 			Bake();
 			m_bDirty = false;
 		}
+		*/
 	}	
 }
