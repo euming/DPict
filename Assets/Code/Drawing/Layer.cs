@@ -164,16 +164,20 @@ public class Layer : MonoBehaviour
 	
 	public void OnMouseDown()
 	{
-		//	if I'm a subscriber and my publisher is a TouchListener, then ignore this message because I'll already get one from my publisher.
-		if (!m_bIsSubscriberOfTouchListener) {
-			OnMouseDownListener(0);
+		if (this.enabled) {
+			//	if I'm a subscriber and my publisher is a TouchListener, then ignore this message because I'll already get one from my publisher.
+			if (!m_bIsSubscriberOfTouchListener) {
+				OnMouseDownListener(0);
+			}
 		}
 	}
 	
 	public void OnMouseUp()
 	{
-		if (!m_bIsSubscriberOfTouchListener) {
-			OnMouseUpListener(0);
+		if (this.enabled) {
+			if (!m_bIsSubscriberOfTouchListener) {
+				OnMouseUpListener(0);
+			}
 		}
 	}
 	

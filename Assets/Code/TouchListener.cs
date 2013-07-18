@@ -38,6 +38,7 @@ public class TouchListener : MonoBehaviour
 		m_camera = GetComponent<Camera>();
 		//m_myPublisher = GetComponent<Publisher>();
 		m_bTouchEnabled = Input.multiTouchEnabled;
+		Rlplog.DbgFlag = true;
 	}
 	
 	public bool isTouchEnabled()
@@ -160,7 +161,8 @@ public class TouchListener : MonoBehaviour
 			bool bButtonAny = bButtonDown || bButtonUp || bButtonHeld;
 			Vector3 mousePos = Input.mousePosition;
 			
-			Ray ray = cam.ScreenPointToRay(mousePos);
+			//	Ray ray = cam.ScreenPointToRay(mousePos);
+			Ray ray = Camera.main.ScreenPointToRay(mousePos);
 			RaycastHit hit;
 			hitGO = null;
 			
