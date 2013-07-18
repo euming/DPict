@@ -60,7 +60,7 @@ public class ColorPick : MonoBehaviour
         Ray rayToMouse = Camera.main.ScreenPointToRay (Input.mousePosition);
         RaycastHit hitInfo;
 		lastRay = rayToMouse;
-        if (collider.Raycast (rayToMouse, out hitInfo, 100.0f)) {
+        if (collider.Raycast (rayToMouse, out hitInfo, Camera.main.far)) {
 			lastHit = hitInfo.point;
         }
 		else {
