@@ -405,6 +405,7 @@ MonoBehaviour:
   m_Gradient: {fileID: 1469921353}
   m_myColor: {r: 0, g: 0, b: 0, a: 0}
   m_holdTime: 1
+  m_releaseTime: .5
 --- !u!1 &311575337
 GameObject:
   m_ObjectHideFlags: 0
@@ -651,6 +652,7 @@ MonoBehaviour:
   m_Gradient: {fileID: 0}
   m_myColor: {r: 0, g: 0, b: 0, a: 0}
   m_holdTime: 1
+  m_releaseTime: .5
 --- !u!1 &694425576
 GameObject:
   m_ObjectHideFlags: 0
@@ -1106,6 +1108,7 @@ MonoBehaviour:
   m_Gradient: {fileID: 0}
   m_myColor: {r: 0, g: 0, b: 0, a: 0}
   m_holdTime: 1
+  m_releaseTime: .5
 --- !u!1 &1060638552
 GameObject:
   m_ObjectHideFlags: 0
@@ -1506,6 +1509,7 @@ MonoBehaviour:
   m_Gradient: {fileID: 829509547}
   m_myColor: {r: 0, g: 0, b: 0, a: 0}
   m_holdTime: 1
+  m_releaseTime: .5
 --- !u!43 &1207060886
 Mesh:
   m_ObjectHideFlags: 0
@@ -1738,6 +1742,7 @@ MonoBehaviour:
   m_Gradient: {fileID: 0}
   m_myColor: {r: 0, g: 0, b: 0, a: 0}
   m_holdTime: 1
+  m_releaseTime: .5
 --- !u!1 &1469921347
 GameObject:
   m_ObjectHideFlags: 0
@@ -1832,6 +1837,7 @@ MonoBehaviour:
   m_Gradient: {fileID: 0}
   m_myColor: {r: 0, g: 0, b: 0, a: 0}
   m_holdTime: 1
+  m_releaseTime: .5
 --- !u!1 &1573153719
 GameObject:
   m_ObjectHideFlags: 0
@@ -2119,6 +2125,7 @@ MonoBehaviour:
   m_Gradient: {fileID: 0}
   m_myColor: {r: 0, g: 0, b: 0, a: 0}
   m_holdTime: 1
+  m_releaseTime: .5
 --- !u!1 &1639220478
 GameObject:
   m_ObjectHideFlags: 0
@@ -2393,6 +2400,7 @@ MonoBehaviour:
   m_Gradient: {fileID: 1298080235}
   m_myColor: {r: 0, g: 0, b: 0, a: 0}
   m_holdTime: 1
+  m_releaseTime: .5
 --- !u!43 &1742279210
 Mesh:
   m_ObjectHideFlags: 0

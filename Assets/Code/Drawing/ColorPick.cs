@@ -8,12 +8,18 @@ public class ColorPick : MonoBehaviour
 {
 	public ColorPick	m_Gradient;
 	public Color 		m_myColor;
-	public float		m_holdTime = 1.0f;
+	public float		m_holdTime = 1.0f;		//	hold long to hold before m_Gradient slides out
+	public float		m_releaseTime = 0.5f;	//	how long between multi-finger touch before selection changes
 	Texture2D			m_myTexture;
+	
+	static Color		m_Accumulator;
+	static int			m_ColorsPicked;
 	
 	Camera				m_myCamera;
 	bool				m_bSelecting = false;
+	bool				m_bIsInvertedColor = false;
 	float				m_timeHeld = 0.0f;
+	float				m_unselectTime;			//	the time at which we stop selecting this.
 	
 	public void Awake()
 	{
@@ -26,6 +32,7 @@ public class ColorPick : MonoBehaviour
 		if (camGO)
 			m_myCamera = camGO.camera;
 		DeactivateGradient();
+		m_ColorsPicked = 0;
 	}
 	
 	Color InvertColor(Color color)
@@ -39,16 +46,27 @@ public class ColorPick : MonoBehaviour
 	
 	void OnMouseDown()
 	{
+		m_ColorsPicked++;
 		m_bSelecting = true;
 		m_timeHeld = 0.0f;
+		m_unselectTime = Time.time + m_releaseTime;
 	}
 	
 	public void OnMouseUp()
 	{
-		Color color = PickColor();
-		Layer.SetBrushColor(color);
+		m_ColorsPicked--;
+		//Color color = PickColor();
+		//Layer.SetBrushColor(m_Accumulator);
+		//m_bSelecting = false;
+		m_bSelecting = false;
+	}
+	
+	public void Unselect()
+	{
 		m_bSelecting = false;
 		DeactivateGradient();
+		m_timeHeld = 0.0f;
+		m_bIsInvertedColor = false;
 	}
 	
 	Vector3 lastHit = Vector3.zero;
@@ -97,8 +115,8 @@ public class ColorPick : MonoBehaviour
 	void ActivateGradient()
 	{
 		if (m_Gradient != null) {
-			if (m_Gradient.gameObject.active==false) {
-				m_Gradient.gameObject.active = true;
+			if (m_Gradient.gameObject.activeSelf==false) {
+				m_Gradient.gameObject.SetActive(true);
 			}
 		}
 	}
@@ -106,16 +124,15 @@ public class ColorPick : MonoBehaviour
 	void DeactivateGradient()
 	{
 		if (m_Gradient != null) {
-			m_Gradient.gameObject.active = false;
+			m_Gradient.gameObject.SetActive(false);;
 		}
-		m_timeHeld = 0.0f;
 	}
 	
 	bool isGradientActive()
 	{
 		bool bIsActive = false;
 		if (m_Gradient != null) {
-			bIsActive = m_Gradient.gameObject.active;
+			bIsActive = m_Gradient.gameObject.activeSelf;
 		}
 		return bIsActive;
 	}
@@ -135,24 +152,65 @@ public class ColorPick : MonoBehaviour
 			color = GetColor(pickPoint);
 		}
 		
-		if (Input.GetMouseButton(1) == true) {
+		if (m_bIsInvertedColor == true) {
 			color = InvertColor(color);
 		}
-		
 		return color;
+	}
+	
+	//	is someone touching this or the gradient?
+	bool isTouchingThis()
+	{
+		bool bIsTouching = false;
+		if (m_Gradient != null) {
+			bIsTouching = m_Gradient.isTouchingThis();
+		}
+		if (bIsTouching==false) {
+	        Ray rayToMouse = Camera.main.ScreenPointToRay (Input.mousePosition);
+	        RaycastHit hitInfo;
+	        if (collider.Raycast (rayToMouse, out hitInfo, Camera.main.far)) {
+				bIsTouching = true;
+	        }
+		}
+		return bIsTouching;
+	}
+	
+	void CheckInvertColorToggle()
+	{
+		if (Input.GetMouseButtonDown(1)==true) {	//	we've clicked a second time
+			if (isTouchingThis()) {
+				m_bIsInvertedColor = !m_bIsInvertedColor;
+			}
+		}
 	}
 	
 	void Update()
 	{
+		CheckInvertColorToggle();
+		
 		if (m_bSelecting) {
-			Color color = PickColor();
-			
-			Layer.SetBrushColor(color);
+			m_myColor = PickColor();
+			m_Accumulator += m_myColor;
 			m_timeHeld += Time.deltaTime;
+			
+			Layer.SetBrushColor(m_Accumulator);
+			m_unselectTime = Time.time + m_releaseTime;
 		}
 		
 		if (m_timeHeld >= m_holdTime) {
 			ActivateGradient();
 		}
+		
+		if (Time.time >= m_unselectTime) {
+			if (m_ColorsPicked==0) {
+				Unselect();
+			}
+		}
+		
+	}
+	
+	void LateUpdate()
+	{
+		m_Accumulator = Color.black;
 	}
 }
