@@ -20,7 +20,11 @@ public class ColorPick : MonoBehaviour
 	bool				m_bIsInvertedColor = false;
 	float				m_timeHeld = 0.0f;
 	float				m_unselectTime;			//	the time at which we stop selecting this.
-	bool				m_bIsSubscriberOfTouchListener;
+	bool				m_bIsSubscriberOfTouchListener;	//	mostly used to distinguish between mouse and touch mode
+	int					m_nTouchesOnThis;		//	how many fingers are touching me?
+	
+	//	cache
+	ColorPick			m_ColorPickParent;
 	
 	public void Awake()
 	{
@@ -34,9 +38,16 @@ public class ColorPick : MonoBehaviour
 			m_myCamera = camGO.camera;
 		DeactivateGradient();
 		m_ColorsPicked = 0;
-
+		m_nTouchesOnThis = 0;
+		
+		if (this.transform.parent != null) {
+			m_ColorPickParent = this.transform.parent.GetComponent<ColorPick>();
+		}
+		
 		//	determine whether we are a subscriber to a touch listener which will be sending us the Mouse messages in lieu of Unity's messages
 		m_bIsSubscriberOfTouchListener = TouchListener.isSubscriberOfTouchListener(this.gameObject);
+		
+		Rlplog.DbgFlag = true;
 	}
 	
 	Color InvertColor(Color color)
@@ -48,17 +59,46 @@ public class ColorPick : MonoBehaviour
 		return outColor;
 	}
 	
+	public void OnMouseEnterListener(int buttonNo)
+	{
+		Rlplog.Debug("ColorPick.OnMouseEnterListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString());
+	}
+	
+	public void OnMouseExitListener(int buttonNo)
+	{
+		Rlplog.Debug("ColorPick.OnMouseExitListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString());
+	}
+	
 	public void OnMouseDownListener(int buttonNo)
 	{
 		if (this.enabled) {
-			OnTouchDown();
+			m_nTouchesOnThis++;
+			if (m_nTouchesOnThis == 1) {
+				OnTouchDown();
+			}
+			else {
+				InvertColorToggle();
+			}
+			Rlplog.Debug("ColorPick.OnMouseDownListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString());
+			//	send my mouse controls to my parent
+			if (m_ColorPickParent != null) {
+				//m_ColorPickParent.OnMouseUpListener(buttonNo);
+			}
 		}
 	}
 	
 	public void OnMouseUpListener(int buttonNo)
 	{
 		if (this.enabled) {
-			OnTouchUp();
+			m_nTouchesOnThis--;
+			if (m_nTouchesOnThis == 0) {
+				OnTouchUp();
+			}
+			Rlplog.Debug("ColorPick.OnMouseUpListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString());
+			//	send my mouse controls to my parent
+			if (m_ColorPickParent != null) {
+				//m_ColorPickParent.OnMouseUpListener(buttonNo);
+			}
 		}
 	}
 	
@@ -154,6 +194,8 @@ public class ColorPick : MonoBehaviour
 		if (m_Gradient != null) {
 			if (m_Gradient.gameObject.activeSelf==false) {
 				m_Gradient.gameObject.SetActive(true);
+				m_Gradient.OnMouseDownListener(0);	//	force button press
+				//	stop selecting this
 			}
 		}
 	}
@@ -212,18 +254,25 @@ public class ColorPick : MonoBehaviour
 		return bIsTouching;
 	}
 	
+	void InvertColorToggle()
+	{
+		if (isTouchingThis()) {
+			m_bIsInvertedColor = !m_bIsInvertedColor;
+		}
+	}
+	
 	void CheckInvertColorToggle()
 	{
 		if (Input.GetMouseButtonDown(1)==true) {	//	we've clicked a second time
-			if (isTouchingThis()) {
-				m_bIsInvertedColor = !m_bIsInvertedColor;
-			}
+			InvertColorToggle();
 		}
 	}
 	
 	void Update()
 	{
-		CheckInvertColorToggle();
+		if (!m_bIsSubscriberOfTouchListener) {
+			CheckInvertColorToggle();
+		}
 		
 		if (m_bSelecting) {
 			m_myColor = PickColor();

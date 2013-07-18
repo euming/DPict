@@ -28,7 +28,7 @@ public class TouchListener : MonoBehaviour
 {
 	public 	bool			m_bOnlySendToSubscribers = false;	//	if true, only send to Subscribers
 	private Camera			m_camera;
-	private GameObject[]	m_currentlyTouchedGO = {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null};	//	16 slots. 7 wasn't enough!
+	private GameObject[]	m_currentlyTouchedGO = {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null};	//	16 slots. 7 wasn't enough! If mouse is hovering over this object, then it will be stored here.
 	//private	Publisher		m_myPublisher;
 	
 	bool	m_bTouchEnabled;
@@ -172,14 +172,14 @@ public class TouchListener : MonoBehaviour
 		
 		for(int ii=0; ii<nButtons; ii++) {
 			bool bForgetButton = false;	//	used for m_currentlyTouchedGO[ii] = null; so that m_currentlyTouchedGO may be valid for us to do other things with it 
-			bool bButtonDown = Input.GetMouseButtonDown(ii);
-			bool bButtonUp = Input.GetMouseButtonUp(ii);
-			bool bButtonHeld = Input.GetMouseButton(ii);
-			bool bButtonAny = bButtonDown || bButtonUp || bButtonHeld;
+			bool bButtonDown = Input.GetMouseButtonDown(ii);	//	pressed since last check?
+			bool bButtonUp = Input.GetMouseButtonUp(ii);		//	released since last check?
+			bool bButtonHeld = Input.GetMouseButton(ii);		//	current mouse button status
+			bool bButtonAnyEdge = bButtonDown || bButtonUp;
 			Vector3 mousePos = Input.mousePosition;
 			
-			//	Ray ray = cam.ScreenPointToRay(mousePos);
-			Ray ray = Camera.main.ScreenPointToRay(mousePos);
+			Ray ray = cam.ScreenPointToRay(mousePos);
+			//Ray ray = Camera.main.ScreenPointToRay(mousePos);
 			RaycastHit hit;
 			hitGO = null;
 			
@@ -198,27 +198,28 @@ public class TouchListener : MonoBehaviour
 			if (m_currentlyTouchedGO[ii] != hitGO) {
 				if (m_currentlyTouchedGO[ii] != null) {
 					m_currentlyTouchedGO[ii].SendMessage("OnMouseExitListener", ii, SendMessageOptions.DontRequireReceiver);
-					Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseExit("+ ii+")" + m_currentlyTouchedGO[ii].name);
+					Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseExitListener("+ ii+") old=" + m_currentlyTouchedGO[ii].name);
+					bForgetButton = true;
 				}
 				if (hitGO != null) {
 					if (bSendMessage) {
 						m_currentlyTouchedGO[ii] = hitGO;
 						m_currentlyTouchedGO[ii].SendMessage("OnMouseEnterListener", ii, SendMessageOptions.DontRequireReceiver);
-						Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseEnter("+ ii+")" + m_currentlyTouchedGO[ii].name);
+						Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseEnterListener("+ ii+") new=" + m_currentlyTouchedGO[ii].name);
+						bForgetButton = false;	//	we can't null out m_currentlyTouchedGO[ii]. we just set it here!
 					}
-				}
-				else {
-					bForgetButton = true;
 				}
 			}
 			
-			if (bButtonAny) {
+			if (bButtonAnyEdge) {
+				//	button edge triggers
 				buttonMsg = null;
 				//	we pressed the button this frame
 				if (bButtonDown) {
 					if (hitGO != null) {	//	only send this message if the button was hit
 						//m_currentlyTouchedGO[ii] = hitGO;
 						buttonMsg = "OnMouseDownListener";
+						Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseDownListener("+ ii+")");
 					}
 				}
 				
@@ -226,7 +227,7 @@ public class TouchListener : MonoBehaviour
 				if (bButtonUp) {
 					if (hitGO != null) {	//	only send this message if the button was hit
 						buttonMsg = "OnMouseUpListener";
-						bForgetButton = true;
+						Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseUpListener("+ ii+")");
 					}
 				}
 				
@@ -238,7 +239,6 @@ public class TouchListener : MonoBehaviour
 					}
 				}
 			}
-			
 			if (bForgetButton) {
 				m_currentlyTouchedGO[ii] = null;
 			}

@@ -240,6 +240,8 @@ GameObject:
   - 92: {fileID: 145164771}
   - 124: {fileID: 145164772}
   - 81: {fileID: 145164770}
+  - 114: {fileID: 145164773}
+  - 114: {fileID: 145164774}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -310,6 +312,34 @@ Behaviour:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 145164767}
   m_Enabled: 1
+--- !u!114 &145164773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 145164767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 836324949c6642543a36d6ef21fd7146, type: 3}
+  m_Name: 
+  m_SubscriberList:
+  - {fileID: 608162929}
+  - {fileID: 291805665}
+  - {fileID: 1654664528}
+  - {fileID: 1150355395}
+  - {fileID: 1599190800}
+  - {fileID: 1469921354}
+--- !u!114 &145164774
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 145164767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d3483b65c5f970418d18475abcdd1e5, type: 3}
+  m_Name: 
+  m_bOnlySendToSubscribers: 1
 --- !u!1 &291805658
 GameObject:
   m_ObjectHideFlags: 0
@@ -323,6 +353,7 @@ GameObject:
   - 23: {fileID: 291805660}
   - 65: {fileID: 291805663}
   - 114: {fileID: 291805664}
+  - 114: {fileID: 291805665}
   m_Layer: 0
   m_Name: ColorPickBlue
   m_TagString: Untagged
@@ -406,6 +437,19 @@ MonoBehaviour:
   m_myColor: {r: 0, g: 0, b: 0, a: 0}
   m_holdTime: 1
   m_releaseTime: .5
+--- !u!114 &291805665
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 291805658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e6061da7890ebb40b62f3bdfe2adb6d, type: 3}
+  m_Name: 
+  m_myPublisher: {fileID: 145164773}
+  m_MessageFilter: 
+  m_MethodFilter: 
 --- !u!1 &311575337
 GameObject:
   m_ObjectHideFlags: 0
@@ -415,9 +459,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 311575338}
   - 20: {fileID: 311575339}
-  - 114: {fileID: 311575340}
   - 114: {fileID: 311575341}
-  - 114: {fileID: 311575342}
   m_Layer: 8
   m_Name: Render Camera
   m_TagString: OrthoCamera
@@ -469,17 +511,6 @@ Camera:
   m_RenderingPath: 0
   m_TargetTexture: {fileID: 8400000, guid: 5a150df097255f6468e842e95958954d, type: 2}
   m_HDR: 0
---- !u!114 &311575340
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 311575337}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2d3483b65c5f970418d18475abcdd1e5, type: 3}
-  m_Name: 
-  m_bOnlySendToSubscribers: 1
 --- !u!114 &311575341
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -492,19 +523,6 @@ MonoBehaviour:
   m_Name: 
   m_BakeTo: {fileID: 8400000, guid: 406f99d92c70fd648a4cac61875ccdf9, type: 2}
   m_bFastBake: 1
---- !u!114 &311575342
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 311575337}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 836324949c6642543a36d6ef21fd7146, type: 3}
-  m_Name: 
-  m_SubscriberList:
-  - {fileID: 1060638558}
-  - {fileID: 1599190800}
 --- !u!1 &567840339
 GameObject:
   m_ObjectHideFlags: 0
@@ -571,6 +589,7 @@ GameObject:
   - 23: {fileID: 608162924}
   - 65: {fileID: 608162927}
   - 114: {fileID: 608162928}
+  - 114: {fileID: 608162929}
   m_Layer: 0
   m_Name: ColorPickBlack
   m_TagString: Untagged
@@ -653,6 +672,19 @@ MonoBehaviour:
   m_myColor: {r: 0, g: 0, b: 0, a: 0}
   m_holdTime: 1
   m_releaseTime: .5
+--- !u!114 &608162929
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 608162922}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e6061da7890ebb40b62f3bdfe2adb6d, type: 3}
+  m_Name: 
+  m_myPublisher: {fileID: 145164773}
+  m_MessageFilter: 
+  m_MethodFilter: 
 --- !u!1 &694425576
 GameObject:
   m_ObjectHideFlags: 0
@@ -683,7 +715,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9e6061da7890ebb40b62f3bdfe2adb6d, type: 3}
   m_Name: 
-  m_myPublisher: {fileID: 311575342}
+  m_myPublisher: {fileID: 0}
   m_MessageFilter: 
   m_MethodFilter: 
 --- !u!65 &694425578
@@ -1207,7 +1239,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9e6061da7890ebb40b62f3bdfe2adb6d, type: 3}
   m_Name: 
-  m_myPublisher: {fileID: 311575342}
+  m_myPublisher: {fileID: 145164773}
   m_MessageFilter: 
   m_MethodFilter: 
 --- !u!43 &1119324128
@@ -1427,6 +1459,7 @@ GameObject:
   - 23: {fileID: 1150355390}
   - 65: {fileID: 1150355393}
   - 114: {fileID: 1150355394}
+  - 114: {fileID: 1150355395}
   m_Layer: 0
   m_Name: ColorPickRed
   m_TagString: Untagged
@@ -1510,6 +1543,19 @@ MonoBehaviour:
   m_myColor: {r: 0, g: 0, b: 0, a: 0}
   m_holdTime: 1
   m_releaseTime: .5
+--- !u!114 &1150355395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1150355388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e6061da7890ebb40b62f3bdfe2adb6d, type: 3}
+  m_Name: 
+  m_myPublisher: {fileID: 145164773}
+  m_MessageFilter: 
+  m_MethodFilter: 
 --- !u!43 &1207060886
 Mesh:
   m_ObjectHideFlags: 0
@@ -1756,6 +1802,7 @@ GameObject:
   - 23: {fileID: 1469921349}
   - 65: {fileID: 1469921352}
   - 114: {fileID: 1469921353}
+  - 114: {fileID: 1469921354}
   m_Layer: 0
   m_Name: ColorPickBlueGradient
   m_TagString: Untagged
@@ -1838,6 +1885,19 @@ MonoBehaviour:
   m_myColor: {r: 0, g: 0, b: 0, a: 0}
   m_holdTime: 1
   m_releaseTime: .5
+--- !u!114 &1469921354
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1469921347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e6061da7890ebb40b62f3bdfe2adb6d, type: 3}
+  m_Name: 
+  m_myPublisher: {fileID: 145164773}
+  m_MessageFilter: 
+  m_MethodFilter: 
 --- !u!1 &1573153719
 GameObject:
   m_ObjectHideFlags: 0
@@ -2028,7 +2088,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9e6061da7890ebb40b62f3bdfe2adb6d, type: 3}
   m_Name: 
-  m_myPublisher: {fileID: 311575342}
+  m_myPublisher: {fileID: 145164773}
   m_MessageFilter: 
   m_MethodFilter: 
 --- !u!1 &1612101330
@@ -2318,6 +2378,7 @@ GameObject:
   - 23: {fileID: 1654664523}
   - 65: {fileID: 1654664526}
   - 114: {fileID: 1654664527}
+  - 114: {fileID: 1654664528}
   m_Layer: 0
   m_Name: ColorPickGreen
   m_TagString: Untagged
@@ -2401,6 +2462,19 @@ MonoBehaviour:
   m_myColor: {r: 0, g: 0, b: 0, a: 0}
   m_holdTime: 1
   m_releaseTime: .5
+--- !u!114 &1654664528
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1654664521}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e6061da7890ebb40b62f3bdfe2adb6d, type: 3}
+  m_Name: 
+  m_myPublisher: {fileID: 145164773}
+  m_MessageFilter: 
+  m_MethodFilter: 
 --- !u!43 &1742279210
 Mesh:
   m_ObjectHideFlags: 0
