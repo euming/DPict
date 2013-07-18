@@ -545,6 +545,7 @@ public class Layer : MonoBehaviour
 		}
 		*/
 		DestroyAllSprites();
+		Bake();
 		/*
 		if (m_bDirty) {
 			Bake();
