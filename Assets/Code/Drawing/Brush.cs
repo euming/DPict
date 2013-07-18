@@ -45,7 +45,7 @@ public class Brush : MonoBehaviour
 		center.x = m_myLayer.m_textureWidth/2;
 		center.y = m_myLayer.m_textureHeight/2;
 		m_myLayer.StartPoint(center);
-		m_myLayer.PaintBrush(center, this);
+		//m_myLayer.PaintBrush(center, this);
 		m_myLayer.DrawSegments();
 	}
 	

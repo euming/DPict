@@ -148,14 +148,18 @@ public class Layer : MonoBehaviour
 	
 	public void OnMouseDownListener(int buttonNo)
 	{
-		m_bIsDrawing = true;
-		StartPoint(GetPoint());
+		if (this.enabled) {
+			m_bIsDrawing = true;
+			StartPoint(GetPoint());
+		}
 	}
 	
 	public void OnMouseUpListener(int buttonNo)
 	{
-		DrawSegments();
-		m_bIsDrawing = false;
+		if (this.enabled) {
+			DrawSegments();
+			m_bIsDrawing = false;
+		}
 	}
 	
 	public void OnMouseDown()
