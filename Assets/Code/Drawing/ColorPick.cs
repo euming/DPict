@@ -12,11 +12,11 @@ public class ColorPick : MonoBehaviour
 	public float		m_releaseTime = 0.5f;	//	how long between multi-finger touch before selection changes
 	Texture2D			m_myTexture;
 	
-	static Color		m_Accumulator;
-	static int			m_ColorsPicked;
+	static Color		s_Accumulator;
+	static int			s_ColorsPicked;
 	
 	Camera				m_myCamera;
-	bool				m_bSelecting = false;
+	bool				m_bSelecting = false;	//	is the mouse pressed on this?
 	bool				m_bIsInvertedColor = false;
 	float				m_timeHeld = 0.0f;
 	float				m_unselectTime;			//	the time at which we stop selecting this.
@@ -37,7 +37,7 @@ public class ColorPick : MonoBehaviour
 		if (camGO)
 			m_myCamera = camGO.camera;
 		DeactivateGradient();
-		m_ColorsPicked = 0;
+		s_ColorsPicked = 0;
 		m_nTouchesOnThis = 0;
 		
 		if (this.transform.parent != null) {
@@ -61,12 +61,12 @@ public class ColorPick : MonoBehaviour
 	
 	public void OnMouseEnterListener(int buttonNo)
 	{
-		Rlplog.Debug("ColorPick.OnMouseEnterListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString());
+		Rlplog.Debug("ColorPick.OnMouseEnterListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString() + ", nColors="+s_ColorsPicked);
 	}
 	
 	public void OnMouseExitListener(int buttonNo)
 	{
-		Rlplog.Debug("ColorPick.OnMouseExitListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString());
+		Rlplog.Debug("ColorPick.OnMouseExitListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString() + ", nColors="+s_ColorsPicked);
 	}
 	
 	public void OnMouseDownListener(int buttonNo)
@@ -79,7 +79,7 @@ public class ColorPick : MonoBehaviour
 			else {
 				InvertColorToggle();
 			}
-			Rlplog.Debug("ColorPick.OnMouseDownListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString());
+			Rlplog.Debug("ColorPick.OnMouseDownListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis + ", nColors="+s_ColorsPicked);
 			//	send my mouse controls to my parent
 			if (m_ColorPickParent != null) {
 				//m_ColorPickParent.OnMouseUpListener(buttonNo);
@@ -94,7 +94,7 @@ public class ColorPick : MonoBehaviour
 			if (m_nTouchesOnThis == 0) {
 				OnTouchUp();
 			}
-			Rlplog.Debug("ColorPick.OnMouseUpListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString());
+			Rlplog.Debug("ColorPick.OnMouseUpListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString() + ", nColors="+s_ColorsPicked);
 			//	send my mouse controls to my parent
 			if (m_ColorPickParent != null) {
 				//m_ColorPickParent.OnMouseUpListener(buttonNo);
@@ -123,7 +123,7 @@ public class ColorPick : MonoBehaviour
 	
 	void OnTouchDown()
 	{
-		m_ColorsPicked++;
+		s_ColorsPicked++;
 		m_bSelecting = true;
 		m_timeHeld = 0.0f;
 		m_unselectTime = Time.time + m_releaseTime;
@@ -131,7 +131,7 @@ public class ColorPick : MonoBehaviour
 	
 	void OnTouchUp()
 	{
-		m_ColorsPicked--;
+		s_ColorsPicked--;
 		//Color color = PickColor();
 		//Layer.SetBrushColor(m_Accumulator);
 		//m_bSelecting = false;
@@ -276,19 +276,18 @@ public class ColorPick : MonoBehaviour
 		
 		if (m_bSelecting) {
 			m_myColor = PickColor();
-			m_Accumulator += m_myColor;
+			s_Accumulator += m_myColor;
 			m_timeHeld += Time.deltaTime;
 			
-			Layer.SetBrushColor(m_Accumulator);
+			Layer.SetBrushColor(s_Accumulator);
 			m_unselectTime = Time.time + m_releaseTime;
-		}
-		
-		if (m_timeHeld >= m_holdTime) {
-			ActivateGradient();
+			if (m_timeHeld >= m_holdTime) {
+				ActivateGradient();
+			}
 		}
 		
 		if (Time.time >= m_unselectTime) {
-			if (m_ColorsPicked==0) {
+			if (s_ColorsPicked<=0) {
 				Unselect();
 			}
 		}
@@ -297,6 +296,6 @@ public class ColorPick : MonoBehaviour
 	
 	void LateUpdate()
 	{
-		m_Accumulator = Color.black;
+		s_Accumulator = Color.black;		//	clear accumulator for next frame. This should be made into a static function and called only once per frame
 	}
 }
