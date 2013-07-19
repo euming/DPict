@@ -180,6 +180,7 @@ public class TouchListener : MonoBehaviour
 			
 			Ray ray = cam.ScreenPointToRay(mousePos);
 			//Ray ray = Camera.main.ScreenPointToRay(mousePos);
+			/*
 			RaycastHit hit;
 			hitGO = null;
 			
@@ -193,48 +194,62 @@ public class TouchListener : MonoBehaviour
 					}
 				}
 			}
-
-			//	something changed from last frame
-			if (m_currentlyTouchedGO[ii] != hitGO) {
-				if (m_currentlyTouchedGO[ii] != null) {
-					m_currentlyTouchedGO[ii].SendMessage("OnMouseExitListener", ii, SendMessageOptions.DontRequireReceiver);
-					Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseExitListener("+ ii+") old=" + m_currentlyTouchedGO[ii].name);
-					bForgetButton = true;
-				}
-				if (hitGO != null) {
-					if (bSendMessage) {
-						m_currentlyTouchedGO[ii] = hitGO;
-						m_currentlyTouchedGO[ii].SendMessage("OnMouseEnterListener", ii, SendMessageOptions.DontRequireReceiver);
-						Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseEnterListener("+ ii+") new=" + m_currentlyTouchedGO[ii].name);
-						bForgetButton = false;	//	we can't null out m_currentlyTouchedGO[ii]. we just set it here!
-					}
-				}
-			}
-			
-			if (bButtonAnyEdge) {
-				//	button edge triggers
-				buttonMsg = null;
-				//	we pressed the button this frame
-				if (bButtonDown) {
-					if (hitGO != null) {	//	only send this message if the button was hit
-						//m_currentlyTouchedGO[ii] = hitGO;
-						buttonMsg = "OnMouseDownListener";
-						Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseDownListener("+ ii+")");
-					}
-				}
+			*/
+			RaycastHit[] hits;
+        	hits = Physics.RaycastAll(ray.origin, ray.direction, cam.far);
+			foreach(RaycastHit hit in hits) {
+				hitGO = null;
 				
-				//	we released the button this frame
-				if (bButtonUp) {
-					if (hitGO != null) {	//	only send this message if the button was hit
-						buttonMsg = "OnMouseUpListener";
-						Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseUpListener("+ ii+")");
+				bool bSendMessage = true;	//	default is to send to everybody
+				hitGO = hit.transform.gameObject;	//	if we touched something
+				if (m_bOnlySendToSubscribers) {	//	sometimes, we only want to send this message to subscribers
+					bSendMessage = false;	//	if we send only to subscribers, the default is that we don't send unless we know for sure our target is a subscriber
+					if (isSubscriber(hitGO)) {
+						bSendMessage = true;
 					}
 				}
-				
-				if (m_currentlyTouchedGO[ii] != null) {
-					if (buttonMsg != null) {
+				//	something changed from last frame
+				if (m_currentlyTouchedGO[ii] != hitGO) {
+					if (m_currentlyTouchedGO[ii] != null) {
+						m_currentlyTouchedGO[ii].SendMessage("OnMouseExitListener", ii, SendMessageOptions.DontRequireReceiver);
+						Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseExitListener("+ ii+") old=" + m_currentlyTouchedGO[ii].name);
+						bForgetButton = true;
+					}
+					if (hitGO != null) {
 						if (bSendMessage) {
-							hitGO.SendMessage(buttonMsg, ii, SendMessageOptions.DontRequireReceiver);
+							m_currentlyTouchedGO[ii] = hitGO;
+							m_currentlyTouchedGO[ii].SendMessage("OnMouseEnterListener", ii, SendMessageOptions.DontRequireReceiver);
+							Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseEnterListener("+ ii+") new=" + m_currentlyTouchedGO[ii].name);
+							bForgetButton = false;	//	we can't null out m_currentlyTouchedGO[ii]. we just set it here!
+						}
+					}
+				}
+				
+				if (bButtonAnyEdge) {
+					//	button edge triggers
+					buttonMsg = null;
+					//	we pressed the button this frame
+					if (bButtonDown) {
+						if (hitGO != null) {	//	only send this message if the button was hit
+							//m_currentlyTouchedGO[ii] = hitGO;
+							buttonMsg = "OnMouseDownListener";
+							Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseDownListener("+ ii+")");
+						}
+					}
+					
+					//	we released the button this frame
+					if (bButtonUp) {
+						if (hitGO != null) {	//	only send this message if the button was hit
+							buttonMsg = "OnMouseUpListener";
+							Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseUpListener("+ ii+")");
+						}
+					}
+					
+					if (m_currentlyTouchedGO[ii] != null) {
+						if (buttonMsg != null) {
+							if (bSendMessage) {
+								hitGO.SendMessage(buttonMsg, ii, SendMessageOptions.DontRequireReceiver);
+							}
 						}
 					}
 				}
