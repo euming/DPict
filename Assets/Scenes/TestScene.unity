@@ -208,6 +208,7 @@ MonoBehaviour:
   m_myTexture: {fileID: 0}
   m_myBackground: {fileID: 0}
   m_myCamera: {fileID: 0}
+  m_SpritePersistTime: .0333333351
   m_textureWidth: 0
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}
@@ -743,6 +744,7 @@ MonoBehaviour:
   m_myTexture: {fileID: 0}
   m_myBackground: {fileID: 2800000, guid: aefca7e4cd4dee8468204ed8ae9ffd9e, type: 3}
   m_myCamera: {fileID: 311575339}
+  m_SpritePersistTime: .0333333351
   m_textureWidth: 1024
   m_textureHeight: 1024
   m_RenderCamera: {fileID: 311575339}
@@ -986,6 +988,7 @@ MonoBehaviour:
   m_myTexture: {fileID: 0}
   m_myBackground: {fileID: 0}
   m_myCamera: {fileID: 0}
+  m_SpritePersistTime: .0333333351
   m_textureWidth: 0
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}
@@ -1222,6 +1225,7 @@ MonoBehaviour:
   m_myTexture: {fileID: 0}
   m_myBackground: {fileID: 2800000, guid: aefca7e4cd4dee8468204ed8ae9ffd9e, type: 3}
   m_myCamera: {fileID: 311575339}
+  m_SpritePersistTime: .0333333351
   m_textureWidth: 1024
   m_textureHeight: 1024
   m_RenderCamera: {fileID: 311575339}
@@ -2059,6 +2063,7 @@ MonoBehaviour:
   m_myTexture: {fileID: 0}
   m_myBackground: {fileID: 2800000, guid: aefca7e4cd4dee8468204ed8ae9ffd9e, type: 3}
   m_myCamera: {fileID: 311575339}
+  m_SpritePersistTime: .00999999978
   m_textureWidth: 1024
   m_textureHeight: 1024
   m_RenderCamera: {fileID: 311575339}
@@ -2358,6 +2363,7 @@ MonoBehaviour:
   m_myTexture: {fileID: 0}
   m_myBackground: {fileID: 2800000, guid: fd8a2e29d96289846bab640c6466a665, type: 3}
   m_myCamera: {fileID: 0}
+  m_SpritePersistTime: .0333333351
   m_textureWidth: 1024
   m_textureHeight: 1024
   m_RenderCamera: {fileID: 311575339}
@@ -2891,6 +2897,7 @@ MonoBehaviour:
   m_myTexture: {fileID: 0}
   m_myBackground: {fileID: 0}
   m_myCamera: {fileID: 0}
+  m_SpritePersistTime: .0333333351
   m_textureWidth: 0
   m_textureHeight: 0
   m_RenderCamera: {fileID: 0}

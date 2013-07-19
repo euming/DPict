@@ -11,6 +11,8 @@ public class Layer : MonoBehaviour
 	Texture2D			m_myTexture2D;
 	RenderTexture		m_myRenderTexture;
 	public Camera		m_myCamera = null;		//	used for collisions
+	
+	public float		m_SpritePersistTime = 1.0f / 30.0f;	//	how long sprites should live
 	Color[]				m_pixelLayer;
 	public int			m_textureWidth;
 	public int			m_textureHeight;
@@ -214,8 +216,8 @@ public class Layer : MonoBehaviour
 					if ((xx+xStart>=0) && (yy+yStart>=0) && (xx+xStart<m_textureWidth) && (yy+yStart<m_textureHeight)) {
 						if (bSoftEdges == true) {
 							fRadiusSq = (float)(xx*xx+yy*yy);
-							ratio = fRadiusSq/brushWidthRadiusSquared;
-							blendValue = (1.0f-ratio) * brushBlendValue;
+							ratio = (fRadiusSq/brushWidthRadiusSquared);
+							blendValue = Mathf.Sqrt(1.0f-ratio);	//	 * brushBlendValue;
 						}
 						else {
 							blendValue = 1.0f * brushBlendValue;
@@ -342,7 +344,7 @@ public class Layer : MonoBehaviour
 		if (m_bDestroyAllSprites == true) {
 			foreach(GameObject go in m_spriteList)
 			{
-				Destroy(go, 1.0f/ 10.0f);
+				Destroy(go, m_SpritePersistTime);
 			}
 			m_spriteList.Clear();
 		}
