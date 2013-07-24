@@ -11,12 +11,15 @@ public class ColorPick : MonoBehaviour
 	public float		m_holdTime = 1.0f;		//	hold long to hold before m_Gradient slides out
 	public float		m_releaseTime = 0.5f;	//	how long between multi-finger touch before selection changes
 	Texture2D			m_myTexture;
+	public bool			m_bDeactivateWhenUnselected = false;
 	
-	static Color		s_Accumulator;
-	static int			s_ColorsPicked;
+	//static Color		s_Accumulator;
+	//static int			s_ColorsPicked;
 	
 	Camera				m_myCamera;
-	bool				m_bSelecting = false;	//	is the mouse pressed on this?
+	bool				m_bIsMouseDown = false;	//	is the mouse pressed on this?
+	bool				m_bIsMouseInside = false;	//	is the mouse iside of this ColorPick object?
+	bool				m_bSelecting = false;	//	is this choice selected? There needs to be some time after the mouse up where a selection remains selected. This variable distinguishes between mouseUp and selection.
 	bool				m_bIsInvertedColor = false;
 	float				m_timeHeld = 0.0f;
 	float				m_unselectTime;			//	the time at which we stop selecting this.
@@ -25,9 +28,15 @@ public class ColorPick : MonoBehaviour
 	
 	//	cache
 	ColorPick			m_ColorPickParent;
+	public ColorAccumulator	m_ColorAccumulator;
 	
 	public void Awake()
 	{
+		//	pointer cache
+		if (m_ColorAccumulator==null) {
+			m_ColorAccumulator = FindObjectOfType(typeof(ColorAccumulator)) as ColorAccumulator;
+		}
+		
 		Texture2D tex = renderer.material.mainTexture as Texture2D;
 		if (tex != null) {
 			m_myTexture = tex;
@@ -37,9 +46,10 @@ public class ColorPick : MonoBehaviour
 		if (camGO)
 			m_myCamera = camGO.camera;
 		DeactivateGradient();
-		s_ColorsPicked = 0;
+//		s_ColorsPicked = 0;
 		m_nTouchesOnThis = 0;
 		
+		//	find cache pointers
 		if (this.transform.parent != null) {
 			m_ColorPickParent = this.transform.parent.GetComponent<ColorPick>();
 		}
@@ -48,6 +58,11 @@ public class ColorPick : MonoBehaviour
 		m_bIsSubscriberOfTouchListener = TouchListener.isSubscriberOfTouchListener(this.gameObject);
 		
 		Rlplog.DbgFlag = true;
+	}
+	
+	void OnEnable()
+	{
+		TouchUnselectTimer();
 	}
 	
 	Color InvertColor(Color color)
@@ -61,16 +76,19 @@ public class ColorPick : MonoBehaviour
 	
 	public void OnMouseEnterListener(int buttonNo)
 	{
-		Rlplog.Debug("ColorPick.OnMouseEnterListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString() + ", nColors="+s_ColorsPicked);
+		Rlplog.Debug("ColorPick.OnMouseEnterListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString() + ", nColors="+m_ColorAccumulator.m_nColorSources);
+		m_bIsMouseInside = true;
 	}
 	
 	public void OnMouseExitListener(int buttonNo)
 	{
-		Rlplog.Debug("ColorPick.OnMouseExitListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString() + ", nColors="+s_ColorsPicked);
+		Rlplog.Debug("ColorPick.OnMouseExitListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString() + ", nColors="+m_ColorAccumulator.m_nColorSources);
+		m_bIsMouseInside = false;
 	}
 	
 	public void OnMouseDownListener(int buttonNo)
 	{
+		m_bIsMouseDown = true;
 		if (this.enabled) {
 			m_nTouchesOnThis++;
 			if (m_nTouchesOnThis == 1) {
@@ -79,7 +97,7 @@ public class ColorPick : MonoBehaviour
 			else {
 				InvertColorToggle();
 			}
-			Rlplog.Debug("ColorPick.OnMouseDownListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis + ", nColors="+s_ColorsPicked);
+			Rlplog.Debug("ColorPick.OnMouseDownListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis + ", nColors="+m_ColorAccumulator.m_nColorSources);
 			//	send my mouse controls to my parent
 			if (m_ColorPickParent != null) {
 				//m_ColorPickParent.OnMouseUpListener(buttonNo);
@@ -89,12 +107,13 @@ public class ColorPick : MonoBehaviour
 	
 	public void OnMouseUpListener(int buttonNo)
 	{
+		m_bIsMouseDown = false;
 		if (this.enabled) {
 			m_nTouchesOnThis--;
 			if (m_nTouchesOnThis == 0) {
 				OnTouchUp();
 			}
-			Rlplog.Debug("ColorPick.OnMouseUpListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString() + ", nColors="+s_ColorsPicked);
+			Rlplog.Debug("ColorPick.OnMouseUpListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString() + ", nColors="+m_ColorAccumulator.m_nColorSources);
 			//	send my mouse controls to my parent
 			if (m_ColorPickParent != null) {
 				//m_ColorPickParent.OnMouseUpListener(buttonNo);
@@ -123,27 +142,37 @@ public class ColorPick : MonoBehaviour
 	
 	void OnTouchDown()
 	{
-		s_ColorsPicked++;
-		m_bSelecting = true;
-		m_timeHeld = 0.0f;
-		m_unselectTime = Time.time + m_releaseTime;
+		if (m_bSelecting==false) {
+			m_bSelecting = true;
+			m_timeHeld = 0.0f;
+			TouchUnselectTimer();
+			m_ColorAccumulator.OnSelect(this);
+		}
 	}
 	
 	void OnTouchUp()
 	{
-		s_ColorsPicked--;
 		//Color color = PickColor();
 		//Layer.SetBrushColor(m_Accumulator);
 		//m_bSelecting = false;
-		m_bSelecting = false;
+		//Unselect();
+		//m_bIsMouseDown = false;
+	}
+	
+	public void TouchUnselectTimer()
+	{
+		m_unselectTime = Time.time + m_releaseTime;
 	}
 	
 	public void Unselect()
 	{
-		m_bSelecting = false;
-		DeactivateGradient();
-		m_timeHeld = 0.0f;
-		m_bIsInvertedColor = false;
+		if (m_bSelecting==true) {
+			m_bSelecting = false;
+			//	DeactivateGradient();
+			m_timeHeld = 0.0f;
+			m_bIsInvertedColor = false;
+			m_ColorAccumulator.OnUnselect(this);
+		}
 	}
 	
 	Vector3 lastHit = Vector3.zero;
@@ -194,7 +223,7 @@ public class ColorPick : MonoBehaviour
 		if (m_Gradient != null) {
 			if (m_Gradient.gameObject.activeSelf==false) {
 				m_Gradient.gameObject.SetActive(true);
-				m_Gradient.OnMouseDownListener(0);	//	force button press
+				//m_Gradient.OnMouseDownListener(0);	//	force button press
 				//	stop selecting this
 			}
 		}
@@ -202,9 +231,15 @@ public class ColorPick : MonoBehaviour
 	
 	void DeactivateGradient()
 	{
+		/*
 		if (m_Gradient != null) {
-			m_Gradient.gameObject.SetActive(false);;
+			if (m_Gradient.gameObject.activeSelf==true) {
+				m_Gradient.gameObject.SetActive(false);
+				//m_Gradient.OnMouseUpListener(0);	//	force button press
+				//	stop selecting this
+			}
 		}
+		*/
 	}
 	
 	bool isGradientActive()
@@ -238,17 +273,24 @@ public class ColorPick : MonoBehaviour
 	}
 	
 	//	is someone touching this or the gradient?
-	bool isTouchingThis()
+	bool isTouchingThis(bool andIfMouseIsDown)
 	{
 		bool bIsTouching = false;
 		if (m_Gradient != null) {
-			bIsTouching = m_Gradient.isTouchingThis();
+			bIsTouching = m_Gradient.isTouchingThis(andIfMouseIsDown);
 		}
 		if (bIsTouching==false) {
 	        Ray rayToMouse = Camera.main.ScreenPointToRay (Input.mousePosition);
 	        RaycastHit hitInfo;
 	        if (collider.Raycast (rayToMouse, out hitInfo, Camera.main.far)) {
-				bIsTouching = true;
+				if (andIfMouseIsDown) {
+					if (this.m_bIsMouseDown) {
+						bIsTouching = true;
+					}
+				}
+				else {
+					bIsTouching = true;
+				}
 	        }
 		}
 		return bIsTouching;
@@ -256,7 +298,7 @@ public class ColorPick : MonoBehaviour
 	
 	void InvertColorToggle()
 	{
-		if (isTouchingThis()) {
+		if (isTouchingThis(true)) {
 			m_bIsInvertedColor = !m_bIsInvertedColor;
 		}
 	}
@@ -268,34 +310,64 @@ public class ColorPick : MonoBehaviour
 		}
 	}
 	
+	bool CheckActivateGradient()
+	{
+		bool bActivate = false;
+		if (m_bIsMouseDown && m_bIsMouseInside) {
+			if (m_timeHeld >= m_holdTime) {
+				bActivate = true;
+			}
+		}
+		return bActivate;
+	}
+	
+	//	gradients can deactivate themselves
+	bool CheckDeactivateSelf()
+	{
+		bool bDeactivate = false;
+		if (m_bDeactivateWhenUnselected) {
+			if (Time.time >= m_unselectTime) {
+				bDeactivate = true;
+			}
+		}
+		return bDeactivate;
+	}
+	
 	void Update()
 	{
 		if (!m_bIsSubscriberOfTouchListener) {
 			CheckInvertColorToggle();
 		}
 		
-		if (m_bSelecting) {
-			m_myColor = PickColor();
-			s_Accumulator += m_myColor;
-			m_timeHeld += Time.deltaTime;
-			
-			Layer.SetBrushColor(s_Accumulator);
-			m_unselectTime = Time.time + m_releaseTime;
-			if (m_timeHeld >= m_holdTime) {
-				ActivateGradient();
-			}
+		if (CheckActivateGradient()) {
+			ActivateGradient();
 		}
 		
-		if (Time.time >= m_unselectTime) {
-			if (s_ColorsPicked<=0) {
+		if (CheckDeactivateSelf()) {
+			//this.gameObject.SetActive(false);
+		}
+		
+		if (m_bIsMouseDown) {
+			m_timeHeld += Time.deltaTime;
+			//m_ColorAccumulator.AddColor(m_myColor);
+
+			//	is anybody touching me or my gradient?
+			if (isTouchingThis(false)) {
+				m_myColor = PickColor();
+				Layer.SetBrushColor(m_ColorAccumulator.GetColor());
+				TouchUnselectTimer();
+			}
+		}
+		else {
+			m_timeHeld = 0.0f;
+			if (Time.time >= m_unselectTime) {
 				Unselect();
 			}
 		}
-		
 	}
 	
 	void LateUpdate()
 	{
-		s_Accumulator = Color.black;		//	clear accumulator for next frame. This should be made into a static function and called only once per frame
+		//s_Accumulator = Color.black;		//	clear accumulator for next frame. This should be made into a static function and called only once per frame
 	}
 }

@@ -27,8 +27,10 @@ using UnityEngine;
 public class TouchListener : MonoBehaviour
 {
 	public 	bool			m_bOnlySendToSubscribers = false;	//	if true, only send to Subscribers
+	public 	int				m_nButtons = 1;						//	how many mouse buttons to check for.
 	private Camera			m_camera;
-	private GameObject[]	m_currentlyTouchedGO = {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null};	//	16 slots. 7 wasn't enough! If mouse is hovering over this object, then it will be stored here.
+	public 	bool			m_bCheckAllHits = false;			//	ray normally stops at the first hit. This allows the ray to penetrate and return all hits
+	public  GameObject[]	m_currentlyTouchedGO = {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null};	//	16 slots. 7 wasn't enough! If mouse is hovering over this object, then it will be stored here.
 	//private	Publisher		m_myPublisher;
 	
 	bool	m_bTouchEnabled;
@@ -39,6 +41,10 @@ public class TouchListener : MonoBehaviour
 		//m_myPublisher = GetComponent<Publisher>();
 		m_bTouchEnabled = Input.multiTouchEnabled;
 		//	Rlplog.DbgFlag = true;
+		m_currentlyTouchedGO = new GameObject[16];
+		for (int ii=0; ii<m_nButtons; ii++) {
+			m_currentlyTouchedGO[ii] = null;
+		}
 	}
 	
 	public bool isTouchEnabled()
@@ -168,7 +174,7 @@ public class TouchListener : MonoBehaviour
 		Camera cam = m_camera;
 		GameObject hitGO = null;
 		
-		int nButtons = 2;	//	how many buttons does our mouse have? No idea
+		int nButtons = m_nButtons;	//	how many buttons does our mouse have? No idea
 		
 		for(int ii=0; ii<nButtons; ii++) {
 			bool bForgetButton = false;	//	used for m_currentlyTouchedGO[ii] = null; so that m_currentlyTouchedGO may be valid for us to do other things with it 
@@ -179,28 +185,29 @@ public class TouchListener : MonoBehaviour
 			Vector3 mousePos = Input.mousePosition;
 			
 			Ray ray = cam.ScreenPointToRay(mousePos);
-			//Ray ray = Camera.main.ScreenPointToRay(mousePos);
-			/*
-			RaycastHit hit;
-			hitGO = null;
-			
+			RaycastHit[] hits;
+			hits = new RaycastHit[1];	//	put one hit in the array
 			bool bSendMessage = true;	//	default is to send to everybody
-			if (Physics.Raycast(ray, out hit)) {
-				hitGO = hit.transform.gameObject;	//	if we touched something
-				if (m_bOnlySendToSubscribers) {	//	sometimes, we only want to send this message to subscribers
-					bSendMessage = false;	//	if we send only to subscribers, the default is that we don't send unless we know for sure our target is a subscriber
-					if (isSubscriber(hitGO)) {
-						bSendMessage = true;
-					}
+			if (m_bCheckAllHits == false) {
+				RaycastHit hit;
+				hitGO = null;
+				//public static bool Raycast (Ray ray, out RaycastHit hitInfo, float distance, int layerMask)
+
+				if (Physics.Raycast(ray, out hit, cam.far/*, cam.cullingMask*/)) {
+					hits[0] = hit;
+				}
+				else {
+					hits = new RaycastHit[0];
 				}
 			}
-			*/
-			RaycastHit[] hits;
-        	hits = Physics.RaycastAll(ray.origin, ray.direction, cam.far);
+			else {			
+	        	hits = Physics.RaycastAll(ray.origin, ray.direction, cam.far);
+			}
+			
 			foreach(RaycastHit hit in hits) {
 				hitGO = null;
 				
-				bool bSendMessage = true;	//	default is to send to everybody
+				bSendMessage = true;	//	default is to send to everybody
 				hitGO = hit.transform.gameObject;	//	if we touched something
 				if (m_bOnlySendToSubscribers) {	//	sometimes, we only want to send this message to subscribers
 					bSendMessage = false;	//	if we send only to subscribers, the default is that we don't send unless we know for sure our target is a subscriber
