@@ -91,12 +91,14 @@ public class ColorPick : MonoBehaviour
 		m_bIsMouseDown = true;
 		if (this.enabled) {
 			m_nTouchesOnThis++;
+			OnTouchDown();
+			/*
 			if (m_nTouchesOnThis == 1) {
-				OnTouchDown();
 			}
 			else {
 				InvertColorToggle();
 			}
+			*/
 			Rlplog.Debug("ColorPick.OnMouseDownListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis + ", nColors="+m_ColorAccumulator.m_nColorSources);
 			//	send my mouse controls to my parent
 			if (m_ColorPickParent != null) {
@@ -109,10 +111,12 @@ public class ColorPick : MonoBehaviour
 	{
 		m_bIsMouseDown = false;
 		if (this.enabled) {
+			OnTouchUp();
 			m_nTouchesOnThis--;
+			/*
 			if (m_nTouchesOnThis == 0) {
-				OnTouchUp();
 			}
+			*/
 			Rlplog.Debug("ColorPick.OnMouseUpListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString() + ", nColors="+m_ColorAccumulator.m_nColorSources);
 			//	send my mouse controls to my parent
 			if (m_ColorPickParent != null) {
@@ -171,7 +175,8 @@ public class ColorPick : MonoBehaviour
 			//	DeactivateGradient();
 			m_timeHeld = 0.0f;
 			m_bIsInvertedColor = false;
-			m_ColorAccumulator.OnUnselect(this);
+			//m_ColorAccumulator.OnUnselect(this);
+			m_bIsMouseDown = false;	//	hack: force this
 		}
 	}
 	
@@ -223,23 +228,17 @@ public class ColorPick : MonoBehaviour
 		if (m_Gradient != null) {
 			if (m_Gradient.gameObject.activeSelf==false) {
 				m_Gradient.gameObject.SetActive(true);
-				//m_Gradient.OnMouseDownListener(0);	//	force button press
-				//	stop selecting this
 			}
 		}
 	}
 	
-	void DeactivateGradient()
+	public void DeactivateGradient()
 	{
-		/*
 		if (m_Gradient != null) {
 			if (m_Gradient.gameObject.activeSelf==true) {
 				m_Gradient.gameObject.SetActive(false);
-				//m_Gradient.OnMouseUpListener(0);	//	force button press
-				//	stop selecting this
 			}
 		}
-		*/
 	}
 	
 	bool isGradientActive()
@@ -343,6 +342,11 @@ public class ColorPick : MonoBehaviour
 			ActivateGradient();
 		}
 		
+		if (m_bIsMouseInside) {
+			TouchUnselectTimer();
+			m_ColorAccumulator.TouchTimer();
+		}
+		
 		if (CheckDeactivateSelf()) {
 			//this.gameObject.SetActive(false);
 		}
@@ -355,14 +359,15 @@ public class ColorPick : MonoBehaviour
 			if (isTouchingThis(false)) {
 				m_myColor = PickColor();
 				Layer.SetBrushColor(m_ColorAccumulator.GetColor());
-				TouchUnselectTimer();
 			}
 		}
 		else {
 			m_timeHeld = 0.0f;
+			/*
 			if (Time.time >= m_unselectTime) {
 				Unselect();
 			}
+			*/
 		}
 	}
 	

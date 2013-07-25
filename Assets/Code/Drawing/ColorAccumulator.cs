@@ -27,6 +27,8 @@ public class ColorAccumulator : MonoBehaviour
 	public int			m_nColorSources;	//	number of sources of color currently
 	public List<ColorPick>	m_SelectSources = new List<ColorPick>();
 	public List<Color>		m_ColorSources = new List<Color>();
+	public float			m_TimeToWaitForSelection = 1.0f;	//	how much time to wait before selecting the color
+	public float			m_FinishedSelectionTimer;		//	
 	
 	void Awake()
 	{
@@ -38,18 +40,22 @@ public class ColorAccumulator : MonoBehaviour
 	
 	public void OnSelect(ColorPick src)
 	{
-		m_nColorSources++;
-		m_SelectSources.Add(src);
-		m_ColorSources.Add(src.m_myColor);
-		Rlplog.Debug("ColorAccumulator.OnSelect", "Add " + src.name);
+		if (!m_SelectSources.Contains(src)) {
+			m_nColorSources++;
+			m_SelectSources.Add(src);
+			m_ColorSources.Add(src.m_myColor);
+			Rlplog.Debug("ColorAccumulator.OnSelect", "Add " + src.name);
+		}
 	}
 	
 	public void OnUnselect(ColorPick src)
 	{
-		m_nColorSources--;
-		m_SelectSources.Remove(src);
-		m_ColorSources.Remove(src.m_myColor);
-		Rlplog.Debug("ColorAccumulator.OnUnselect", "Remove " + src.name);
+		if (m_SelectSources.Contains(src)) {
+			m_nColorSources--;
+			m_SelectSources.Remove(src);
+			m_ColorSources.Remove(src.m_myColor);
+			Rlplog.Debug("ColorAccumulator.OnUnselect", "Remove " + src.name);
+		}
 	}
 	
 	public void AddColor(Color c)
@@ -62,20 +68,42 @@ public class ColorAccumulator : MonoBehaviour
 		return m_accColor;
 	}
 	
-	void Update()
+	void FinishedSelection()
 	{
+		for(int ii=m_SelectSources.Count-1; ii>=0; ii--) {
+			ColorPick pick = m_SelectSources[ii];
+			pick.Unselect();
+			pick.DeactivateGradient();
+			OnUnselect(pick);
+		}
 	}
 	
-	void LateUpdate()			//	swap buffers
+	void Update()
+	{
+		if (Time.time >= m_FinishedSelectionTimer) {
+			FinishedSelection();
+		}
+	}
+	
+	public void TouchTimer()
+	{
+		m_FinishedSelectionTimer = Time.time + m_TimeToWaitForSelection;
+	}
+	
+	void AccumulateColors()
 	{
 		m_accColor = m_bufferColor[m_curBufferIdx];		//	clear accumulator for next frame. This should be made into a static function and called only once per frame
 		m_accColor = Color.black;
 		for(int ii=0; ii<m_SelectSources.Count; ii++) {
 			ColorPick pick = m_SelectSources[ii];
 			m_ColorSources[ii] = pick.m_myColor;
-			m_accColor += pick.m_myColor;
-			
+			AddColor(pick.m_myColor);
 		}
 		//m_curBufferIdx ^=1;		//	xor 1
-	}	
+	}
+	
+	void LateUpdate()			//	swap buffers
+	{
+		AccumulateColors();
+	}
 }

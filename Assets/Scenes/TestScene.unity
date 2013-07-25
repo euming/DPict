@@ -342,8 +342,7 @@ MonoBehaviour:
   m_Name: 
   m_bOnlySendToSubscribers: 1
   m_nButtons: 1
-  m_bCheckAllHits: 0
-  m_currentlyTouchedGO: []
+  m_bCheckAllHits: 1
 --- !u!1 &291805658
 GameObject:
   m_ObjectHideFlags: 0
@@ -1258,6 +1257,8 @@ MonoBehaviour:
   m_nColorSources: 0
   m_SelectSources: []
   m_ColorSources: []
+  m_TimeToWaitForSelection: 1
+  m_FinishedSelectionTimer: 0
 --- !u!43 &1119324128
 Mesh:
   m_ObjectHideFlags: 0
