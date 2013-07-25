@@ -111,78 +111,71 @@ public class TouchListener : MonoBehaviour
 		Camera cam = m_camera;
 		GameObject hitGO = null;
 		
-		int TouchNum = 0;
-		
 		foreach (Touch touch in Input.touches) {
-			bool		bForgetButton = false;
-			string		buttonEnterExitMsg;
-			string		buttonMsg;
 			int			fingerID = touch.fingerId;
 			
-			TouchNum++;
-			
-			if (fingerID >= m_currentlyTouchedGO.Count) {	//	check bounds. ignore input beyond 7, send out an error message and continue as normal.
-				continue;
-			}
-			
-			Ray ray = cam.ScreenPointToRay(touch.position);
-			RaycastHit hit;
-			hitGO = null;
-			
-			if (Physics.Raycast(ray, out hit)) {
-				hitGO = hit.transform.gameObject;	//	if we touched something
-			}
-			buttonMsg = null;
-			buttonEnterExitMsg = null;
-			switch (touch.phase)
-			{
-				default:
-					break;
-				case TouchPhase.Began:
-					buttonMsg = "OnMouseDown";
-					if (hitGO != null) {
-						buttonEnterExitMsg = "OnMouseEnter";
-						AddTouchedGO(hitGO, fingerID);
-//						m_currentlyTouchedGO[fingerID] = hitGO;
+			ClearTouchedThisFrameFlags();
+			RaycastHit[] hits = GetAllHits(touch.position);
+			foreach(RaycastHit hit in hits) {
+				hitGO = hit.transform.gameObject;
+				TouchedGO touchedGO = this.FindTouchedGO(hitGO, fingerID);
+				//	do Enter messages
+				if (touchedGO==null) {
+					touchedGO = AddTouchedGO(hitGO, fingerID);
+					hitGO.SendMessage("OnMouseEnterListener", fingerID, SendMessageOptions.DontRequireReceiver);
+					Rlplog.Debug("TouchListener.TouchTapSelect", "OnMouseEnterListener("+ fingerID+") new=" + hitGO.name);
+				}
+				touchedGO.m_bTouchedThisFrame = true;
+				
+				switch (touch.phase)
+				{
+					default:
+						break;
+					case TouchPhase.Began:
+						hitGO.SendMessage("OnMouseDownListener", fingerID, SendMessageOptions.DontRequireReceiver);
+						break;
+					case TouchPhase.Moved:
+					case TouchPhase.Stationary:
+						if (hitGO != null) {
+							//buttonEnterExitMsg = "OnMouseOver";
+							//AddTouchedGO(hitGO, fingerID);
+	//						m_currentlyTouchedGO[fingerID] = hitGO;
+							touchedGO.m_bButtonHeld = true;
+						}
+						break;
+					case TouchPhase.Canceled:
+					case TouchPhase.Ended:
+						hitGO.SendMessage("OnMouseUpListener", fingerID, SendMessageOptions.DontRequireReceiver);
+						touchedGO.m_bButtonHeld = false;
+						touchedGO.m_bForgetMeThisFrame = true;
+						break;
+				}
+				
+				SendExitMessages(fingerID);
+				CleanupUntouched();
+				/*
+				if (m_currentlyTouchedGO[fingerID] != null) {
+					bool bSendMessage = true;	//	default is to send to everybody
+					if (m_bOnlySendToSubscribers) {	//	sometimes, we only want to send this message to subscribers
+						bSendMessage = false;	//	if we send only to subscribers, the default is that we don't send unless we know for sure our target is a subscriber
+						if (isSubscriber(m_currentlyTouchedGO[fingerID])) {
+							bSendMessage = true;
+						}
 					}
-					break;
-				case TouchPhase.Moved:
-				case TouchPhase.Stationary:
-					if (hitGO != null) {
-						buttonEnterExitMsg = "OnMouseOver";
-						//AddTouchedGO(hitGO, fingerID);
-//						m_currentlyTouchedGO[fingerID] = hitGO;
-					}
-					break;
-				case TouchPhase.Canceled:
-				case TouchPhase.Ended:
-					buttonMsg = "OnMouseUp";
-					buttonEnterExitMsg = "OnMouseExit";
-					bForgetButton = true;
-					break;
-			}
-			/*
-			if (m_currentlyTouchedGO[fingerID] != null) {
-				bool bSendMessage = true;	//	default is to send to everybody
-				if (m_bOnlySendToSubscribers) {	//	sometimes, we only want to send this message to subscribers
-					bSendMessage = false;	//	if we send only to subscribers, the default is that we don't send unless we know for sure our target is a subscriber
-					if (isSubscriber(m_currentlyTouchedGO[fingerID])) {
-						bSendMessage = true;
+					if (bSendMessage) {
+						if (buttonEnterExitMsg != null) {
+							m_currentlyTouchedGO[fingerID].SendMessage(buttonEnterExitMsg);
+						}
+						if (buttonMsg != null) {
+							m_currentlyTouchedGO[fingerID].SendMessage(buttonMsg);
+						}
+						if (bForgetButton) {
+							m_currentlyTouchedGO[fingerID] = null;
+						}
 					}
 				}
-				if (bSendMessage) {
-					if (buttonEnterExitMsg != null) {
-						m_currentlyTouchedGO[fingerID].SendMessage(buttonEnterExitMsg);
-					}
-					if (buttonMsg != null) {
-						m_currentlyTouchedGO[fingerID].SendMessage(buttonMsg);
-					}
-					if (bForgetButton) {
-						m_currentlyTouchedGO[fingerID] = null;
-					}
-				}
+				*/
 			}
-			*/
 		}
 	}
 	
@@ -215,6 +208,55 @@ public class TouchListener : MonoBehaviour
 		}
 	}
 	
+	//	get everything we hit right now
+	RaycastHit[] GetAllHits(Vector3 mousePos)
+	{
+		Camera cam = m_camera;
+		Ray ray = cam.ScreenPointToRay(mousePos);
+		RaycastHit[] hits;
+		hits = new RaycastHit[1];	//	put one hit in the array by default
+		if (m_bCheckAllHits == false) {
+			RaycastHit hit;
+			//public static bool Raycast (Ray ray, out RaycastHit hitInfo, float distance, int layerMask)
+
+			if (Physics.Raycast(ray, out hit, cam.far/*, cam.cullingMask*/)) {
+				hits[0] = hit;				//	put our one hit into the size 1 array
+			}
+			else {
+				hits = new RaycastHit[0];	//	no hit: make empty array
+			}
+		}
+		else {			
+        	hits = Physics.RaycastAll(ray.origin, ray.direction, cam.far);
+		}
+
+		return hits;
+	}
+	
+	void SendExitMessages(int ii)
+	{
+		//	do Exit messages
+		foreach(TouchedGO tgo in m_currentlyTouchedGO) {	//	these are all of the things which are currently touched, including last frame's touched GOs
+			//	do exit message
+			if (!tgo.m_bTouchedThisFrame) {
+				tgo.m_GO.SendMessage("OnMouseExitListener", ii, SendMessageOptions.DontRequireReceiver);
+				Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseExitListener("+ ii+") old=" + tgo.m_GO.name);
+				tgo.m_bForgetMeThisFrame = true;
+			}
+		}
+	}
+
+	void CleanupUntouched()
+	{
+		TouchedGO[] tempList = new TouchedGO[m_currentlyTouchedGO.Count];
+		m_currentlyTouchedGO.CopyTo(tempList);
+		foreach(TouchedGO tgo in tempList) {
+			if (tgo.m_bForgetMeThisFrame) {
+				m_currentlyTouchedGO.Remove(tgo);
+			}
+		}
+		tempList = null;	//	destroy the templist (or at least clue the Garbage Collector to do it eventually)
+	}
 	/*
 	 * 	Allows different buttons to be differentiated
 	 */
@@ -222,40 +264,20 @@ public class TouchListener : MonoBehaviour
 	{
 		string		buttonMsg;
 		
-		Camera cam = m_camera;
 		GameObject hitGO = null;
 		
 		int nButtons = m_nButtons;	//	how many buttons does our mouse have? No idea
 		
 		for(int ii=0; ii<nButtons; ii++) {
-			bool bForgetButton = false;	//	used for m_currentlyTouchedGO[ii] = null; so that m_currentlyTouchedGO may be valid for us to do other things with it 
+			bool bSendMessage = true;	//	default is to send to everybody
 			bool bButtonDown = Input.GetMouseButtonDown(ii);	//	pressed since last check?
 			bool bButtonUp = Input.GetMouseButtonUp(ii);		//	released since last check?
 			bool bButtonHeld = Input.GetMouseButton(ii);		//	current mouse button status
 			bool bButtonAnyEdge = bButtonDown || bButtonUp;
 			Vector3 mousePos = Input.mousePosition;
 			
-			Ray ray = cam.ScreenPointToRay(mousePos);
-			RaycastHit[] hits;
-			hits = new RaycastHit[1];	//	put one hit in the array
-			bool bSendMessage = true;	//	default is to send to everybody
-			if (m_bCheckAllHits == false) {
-				RaycastHit hit;
-				hitGO = null;
-				//public static bool Raycast (Ray ray, out RaycastHit hitInfo, float distance, int layerMask)
-
-				if (Physics.Raycast(ray, out hit, cam.far/*, cam.cullingMask*/)) {
-					hits[0] = hit;
-				}
-				else {
-					hits = new RaycastHit[0];
-				}
-			}
-			else {			
-	        	hits = Physics.RaycastAll(ray.origin, ray.direction, cam.far);
-			}
-			
 			ClearTouchedThisFrameFlags();
+			RaycastHit[] hits = GetAllHits(mousePos);
 			
 			//	for everything we are hovering over
 			foreach(RaycastHit hit in hits) {
@@ -274,7 +296,6 @@ public class TouchListener : MonoBehaviour
 					touchedGO = AddTouchedGO(hitGO, ii);
 					hitGO.SendMessage("OnMouseEnterListener", ii, SendMessageOptions.DontRequireReceiver);
 					Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseEnterListener("+ ii+") new=" + hitGO.name);
-					bForgetButton = false;	//	we can't null out m_currentlyTouchedGO[ii]. we just set it here!
 				}
 				touchedGO.m_bButtonHeld = bButtonHeld;
 				touchedGO.m_bTouchedThisFrame = true;
@@ -300,27 +321,18 @@ public class TouchListener : MonoBehaviour
 						}
 					}
 					
-					if (m_currentlyTouchedGO[ii] != null) {
+					if (hitGO != null) {
 						if (buttonMsg != null) {
 							if (bSendMessage) {
 								hitGO.SendMessage(buttonMsg, ii, SendMessageOptions.DontRequireReceiver);
 							}
 						}
 					}
-				}
-				
+				}				
 			}
 			
-			//	do Exit messages
-			foreach(TouchedGO tgo in m_currentlyTouchedGO) {	//	these are all of the things which are currently touched, including last frame's touched GOs
-				//	do exit message
-				if (!tgo.m_bTouchedThisFrame) {
-					tgo.m_GO.SendMessage("OnMouseExitListener", ii, SendMessageOptions.DontRequireReceiver);
-					Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseExitListener("+ ii+") old=" + tgo.m_GO.name);
-					tgo.m_bForgetMeThisFrame = true;
-				}
-			}
-				
+			SendExitMessages(ii);
+			
 /*
 			//	if there can be multiple hits per button press, then we need to store m_currentlyTouchedGO[] as non-unique.
 			foreach(RaycastHit hit in hits) {
@@ -381,14 +393,7 @@ public class TouchListener : MonoBehaviour
 			}
 */
 			//	clean up buttons which are no longer being hovered over
-			TouchedGO[] tempList = new TouchedGO[m_currentlyTouchedGO.Count];
-			m_currentlyTouchedGO.CopyTo(tempList);
-			foreach(TouchedGO tgo in tempList) {
-				if (tgo.m_bForgetMeThisFrame) {
-					m_currentlyTouchedGO.Remove(tgo);
-				}
-			}
-			tempList = null;	//	destroy the templist (or at least clue the Garbage Collector to do it eventually)
+			CleanupUntouched();
 		}
 	}
 
