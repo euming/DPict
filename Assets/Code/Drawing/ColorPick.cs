@@ -89,8 +89,8 @@ public class ColorPick : MonoBehaviour
 	public void OnMouseDownListener(int buttonNo)
 	{
 		m_bIsMouseDown = true;
+		m_nTouchesOnThis++;
 		if (this.enabled) {
-			m_nTouchesOnThis++;
 			OnTouchDown();
 			/*
 			if (m_nTouchesOnThis == 1) {
@@ -102,7 +102,7 @@ public class ColorPick : MonoBehaviour
 			Rlplog.Debug("ColorPick.OnMouseDownListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis + ", nColors="+m_ColorAccumulator.m_nColorSources);
 			//	send my mouse controls to my parent
 			if (m_ColorPickParent != null) {
-				//m_ColorPickParent.OnMouseUpListener(buttonNo);
+				m_ColorPickParent.OnMouseDownListener(buttonNo);
 			}
 		}
 	}
@@ -110,9 +110,9 @@ public class ColorPick : MonoBehaviour
 	public void OnMouseUpListener(int buttonNo)
 	{
 		m_bIsMouseDown = false;
+		m_nTouchesOnThis--;
 		if (this.enabled) {
 			OnTouchUp();
-			m_nTouchesOnThis--;
 			/*
 			if (m_nTouchesOnThis == 0) {
 			}
@@ -120,7 +120,7 @@ public class ColorPick : MonoBehaviour
 			Rlplog.Debug("ColorPick.OnMouseUpListener", this.name +": buttonNo="+buttonNo.ToString()+", nTouches="+m_nTouchesOnThis.ToString() + ", nColors="+m_ColorAccumulator.m_nColorSources);
 			//	send my mouse controls to my parent
 			if (m_ColorPickParent != null) {
-				//m_ColorPickParent.OnMouseUpListener(buttonNo);
+				m_ColorPickParent.OnMouseUpListener(buttonNo);
 			}
 		}
 	}
@@ -272,25 +272,38 @@ public class ColorPick : MonoBehaviour
 	}
 	
 	//	is someone touching this or the gradient?
+	//	andIfMouseIsDown - mouse must be held down on either our object OR the gradient to return true
 	bool isTouchingThis(bool andIfMouseIsDown)
 	{
-		bool bIsTouching = false;
-		if (m_Gradient != null) {
-			bIsTouching = m_Gradient.isTouchingThis(andIfMouseIsDown);
+		bool 	bIsTouchingGradient = false;
+		bool 	bIsTouching = false;
+		bool	bMouseHeld = false;
+		if (m_Gradient != null) {	//	touching my gradient is same as touching me.
+			bIsTouchingGradient = bIsTouching = m_Gradient.isTouchingThis(false);	//	we don't care if the mouse is held by the gradient to return true, just if we're inside of it. This is because the original button press occurs on the parent button, not the gradient. So the gradient never receives a button down message.
+			if (m_Gradient.m_bIsMouseDown) {
+				bMouseHeld = true;
+			}
 		}
+		
+		if (this.m_bIsMouseDown) {
+			bMouseHeld = true;
+		}
+
+		if (andIfMouseIsDown) {
+			if (bMouseHeld==false) {	//	early bail. No mouse is held down, therefore no one is touching
+				return false;
+			}
+		}
+		//	is someone touching me?
 		if (bIsTouching==false) {
-	        Ray rayToMouse = Camera.main.ScreenPointToRay (Input.mousePosition);
+	        Ray rayToMouse = Camera.mainCamera.ScreenPointToRay (Input.mousePosition);
 	        RaycastHit hitInfo;
+			
+			//	am I touched by this ray?
 	        if (collider.Raycast (rayToMouse, out hitInfo, Camera.main.far)) {
-				if (andIfMouseIsDown) {
-					if (this.m_bIsMouseDown) {
-						bIsTouching = true;
-					}
-				}
-				else {
-					bIsTouching = true;
-				}
+				bIsTouching = true;
 	        }
+			
 		}
 		return bIsTouching;
 	}
@@ -356,7 +369,7 @@ public class ColorPick : MonoBehaviour
 			//m_ColorAccumulator.AddColor(m_myColor);
 
 			//	is anybody touching me or my gradient?
-			if (isTouchingThis(false)) {
+			if (isTouchingThis(true)) {
 				m_myColor = PickColor();
 				Layer.SetBrushColor(m_ColorAccumulator.GetColor());
 			}

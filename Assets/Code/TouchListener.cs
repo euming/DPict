@@ -309,7 +309,7 @@ public class TouchListener : MonoBehaviour
 						if (hitGO != null) {	//	only send this message if the button was hit
 							//m_currentlyTouchedGO[ii] = hitGO;
 							buttonMsg = "OnMouseDownListener";
-							Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseDownListener("+ ii+")");
+							Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseDownListener("+ ii+")" + hitGO.name);
 						}
 					}
 					
@@ -317,7 +317,7 @@ public class TouchListener : MonoBehaviour
 					if (bButtonUp) {
 						if (hitGO != null) {	//	only send this message if the button was hit
 							buttonMsg = "OnMouseUpListener";
-							Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseUpListener("+ ii+")");
+							Rlplog.Debug("TouchListener.MouseTapSelect", "OnMouseUpListener("+ ii+")" + hitGO.name);
 						}
 					}
 					
