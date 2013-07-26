@@ -370,7 +370,7 @@ public class Layer : MonoBehaviour
 		Sprite3D sprite = spriteGO.GetComponent<Sprite3D>();		//	scale of each sprite is 1.0 with xmin=-0.5, xmax=0.5
 		Vector2		uvMin, uvMax;
 		
-		uvMin = new Vector2(0.50f,0);	//	use the center of the brush for the stretch
+		uvMin = new Vector2(0.50f,0);	//	use the center of the brush's texture for the stretch
 		uvMax = new Vector2(0.50f,1);
 		sprite.SetUVs(uvMin, uvMax);
 		Transform xform = spriteGO.transform;
@@ -385,7 +385,6 @@ public class Layer : MonoBehaviour
 		//	figure out the scale
 		Vector3 newScale = spriteGO.transform.localScale;
 		float spriteWidth = sprite.m_Texture.width;
-		len -= 2.0f;
 		len /= spriteWidth;
 		float scale = len;			//	scale should be 1.0, not 0.0 if pt1 and pt2 are the same.
 		if (scale < 0.0f)
