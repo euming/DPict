@@ -16,8 +16,9 @@ public class Layer : MonoBehaviour
 	Color[]				m_pixelLayer;
 	public int			m_textureWidth;
 	public int			m_textureHeight;
-	int					m_maxPoints=6;
+	int					m_maxPoints=128;
 	Vector3[]			m_prevPoints = null;
+	List<Vector3>		m_prevPointsList = new List<Vector3>();
 	int					m_frameCounter;
 	bool				m_bIsDrawing;
 	float				m_BrushLineDensity = 2.75f;	//	2.75 = best mix of performance and quality
@@ -31,7 +32,7 @@ public class Layer : MonoBehaviour
 	public bool m_bFastRender = true;	//	uses polygons rather than direct texture access to draw brushes
 	public bool m_bStretchSpriteRender = true;	//	stretch a brush across the space between user input points
 	public int	m_numStretchSprites = 2;
-	
+	public float m_userInputSampleRate = 60.0f;		//	sample user imput this many times per second
 	/*
 	//	brush stuff
 	float				m_blendValue = 0.333f;
@@ -46,22 +47,14 @@ public class Layer : MonoBehaviour
 	
 	//	debugging stuff
 	public bool			m_bDrawEndPts = true;
+	public int			m_numPoints = 0;
 	
 	static Layer		m_currentLayer;
 	static List<Layer>	m_layerList = new List<Layer>();
 	
 	void Awake()
 	{
-		/*
-		color_palette = new Color[m_maxColors];
-		color_palette[0] = Color.blue;
-		color_palette[1] = Color.red;
-		color_palette[2] = Color.green;
-		color_palette[3] = Color.yellow;
-		color_palette[4] = Color.white;
-		color_palette[5] = Color.black;
-		color_palette[6] = Color.gray;
-		*/
+		Time.fixedDeltaTime = 1.0f/m_userInputSampleRate;	//	user input update time
 		
 		if (this.tag == "DrawingLayer") {
 			m_currentLayer = this;
@@ -236,14 +229,20 @@ public class Layer : MonoBehaviour
 		for(int ii=0; ii<m_prevPoints.Length; ii++) {
 			m_prevPoints[ii] = pt;
 		}
+		m_prevPointsList.Clear();
+		m_prevPointsList.Add(new Vector3(pt.x, pt.y, pt.z));
+		m_prevPointsList.Add(new Vector3(pt.x, pt.y, pt.z));
+		m_prevPointsList.Add(new Vector3(pt.x, pt.y, pt.z));
 	}
 	
-	void AddPreviousPoint(Vector3 pt)
+	void AddPreviousPoint(Vector3 pt)	//	add to the end of the list
 	{
 		for(int ii=0; ii<m_prevPoints.Length-1; ii++) {
 			m_prevPoints[ii] = m_prevPoints[ii+1];
 		}
 		m_prevPoints[m_prevPoints.Length-1] = pt;
+		m_prevPointsList.Add(new Vector3(pt.x, pt.y, pt.z));
+		m_numPoints = m_prevPointsList.Count;
 	}
 	
 	public struct BoxExtents
@@ -261,29 +260,39 @@ public class Layer : MonoBehaviour
 		float 	distBetweenPts;
 		float	nInterpolations;
 		
-		for(int ii=idx0; ii<idx1; ii++) {		//	actual points
-			if (m_bStretchSpriteRender) {
-				CreateStretchedBrushGO(m_myBrush, m_prevPoints[ii], m_prevPoints[ii+1], m_numStretchSprites);
-			}
-			else {
-				for(float p=0.0f; p<1.0f; p+=interpolationAmount) {	//	interpolation between points
-					distBetweenPts = Vector3.Distance(m_prevPoints[ii], m_prevPoints[ii+1]);
-					nInterpolations = m_BrushLineDensity * distBetweenPts / fBrushWidth;
-					if (nInterpolations == 0) {
-						nInterpolations = 1;
-						interpolationAmount = 1.0f;
+		if (idx0==idx1) {
+			CreateBrushGO(m_myBrush, m_prevPointsList[0]);
+		}
+		else {
+			for(int ii=idx0; ii<idx1; ii++) {		//	actual points
+				if (m_bStretchSpriteRender) {
+					int lastIdx = ii+1;
+					if (lastIdx >= m_prevPointsList.Count) {
+						lastIdx = m_prevPointsList.Count-1;
 					}
-					else {
-						interpolationAmount = 1.0f / nInterpolations;	//	make sure there's enough to fill in-between spaces.
+					Vector3 lastPt = m_prevPointsList[lastIdx];
+					CreateStretchedBrushGO(m_myBrush, m_prevPointsList[ii], lastPt, m_numStretchSprites);
+				}
+				else {
+					for(float p=0.0f; p<1.0f; p+=interpolationAmount) {	//	interpolation between points
+						distBetweenPts = Vector3.Distance(m_prevPointsList[ii], m_prevPointsList[ii+1]);
+						nInterpolations = m_BrushLineDensity * distBetweenPts / fBrushWidth;
+						if (nInterpolations == 0) {
+							nInterpolations = 1;
+							interpolationAmount = 1.0f;
+						}
+						else {
+							interpolationAmount = 1.0f / nInterpolations;	//	make sure there's enough to fill in-between spaces.
+						}
+						newPt = Vector3.Lerp(m_prevPointsList[ii], m_prevPointsList[ii+1], p);
+						if (this.m_bFastRender == true) {
+							CreateBrushGO(m_myBrush, newPt);
+						}
+						else {
+							PaintBrush(newPt, m_myBrush);
+						}
+						prevPt = newPt;
 					}
-					newPt = Vector3.Lerp(m_prevPoints[ii], m_prevPoints[ii+1], p);
-					if (this.m_bFastRender == true) {
-						CreateBrushGO(m_myBrush, newPt);
-					}
-					else {
-						PaintBrush(newPt, m_myBrush);
-					}
-					prevPt = newPt;
 				}
 			}
 		}
@@ -333,7 +342,7 @@ public class Layer : MonoBehaviour
 			}
 		}
 		else {
-			hitPoint = m_prevPoints[m_prevPoints.Length-1];		//	use previous point if we're off screen
+			hitPoint = m_prevPointsList[m_prevPointsList.Count-1];		//	use previous point if we're off screen
 		}
 		return hitPoint;
 	}
@@ -418,14 +427,15 @@ public class Layer : MonoBehaviour
 	public void DrawSegments()
 	{
 		int		buffer = 2;
-		int		nSegments = 3;
+		int 	nSegments = 3;//this.m_prevPointsList.Count;
 		
 		bool	bSlowCPUTextureUpdate = !m_bFastRender;
 		
 		if (bSlowCPUTextureUpdate && m_myTexture2D) {
-			InterpolatePreviousPoints(m_maxPoints-buffer-nSegments, m_maxPoints-buffer);
+			//InterpolatePreviousPoints(m_maxPoints-buffer-nSegments, m_maxPoints-buffer);
 			//m_myTexture.SetPixels(0, (int)extents.min.y, 1024, (int)(extents.max.y-extents.min.y), m_pixelLayer);
 			//m_myTexture.SetPixels(0, 0, 1024, (int)(extents.max.y-extents.min.y), m_pixelLayer);
+			InterpolatePreviousPoints(m_prevPointsList.Count-1, 0);
 			m_myTexture2D.SetPixels(m_pixelLayer, 0);
 			m_myTexture2D.Apply();
 		}
@@ -441,16 +451,13 @@ public class Layer : MonoBehaviour
 			GameObject spriteGO = CreateBrushGO(m_myBrush, m_prevPoints[m_prevPoints.Length-1]);
 			m_spriteList.Add(spriteGO);
 			*/
-			InterpolatePreviousPoints(m_maxPoints-buffer-nSegments, m_maxPoints-buffer);
-			Bake();
+			//InterpolatePreviousPoints(m_prevPointsList.Count-buffer-nSegments, m_prevPointsList.Count-buffer);
+			if (m_prevPointsList.Count > 0) {
+				InterpolatePreviousPoints(0, m_prevPointsList.Count-1);
+				Bake();
+			}
 			//Dirty();
 		}
-	}
-	
-	bool m_bDirty = false;
-	public void Dirty()
-	{
-		m_bDirty = true;
 	}
 	
 	void Bake()
@@ -465,6 +472,9 @@ public class Layer : MonoBehaviour
 				}
 			}
 		}
+		Vector3 lastPt = m_prevPointsList[m_prevPointsList.Count-1];
+		m_prevPointsList.Clear();
+		m_prevPointsList.Add(lastPt);
 	}
 	
 	public void Clear()
@@ -528,33 +538,17 @@ public class Layer : MonoBehaviour
 	// Update is called once per frame
 	void Update () 
 	{
+		if (Time.frameCount % 1 == 0) {
+			DrawSegments();
+		}
+	}
+
+	void FixedUpdate()
+	{
+		Time.fixedDeltaTime = 1.0f/m_userInputSampleRate;	//	user input update time
 		if (m_bIsDrawing && (Input.GetMouseButton(0) == true)) {
 
 			AddPreviousPoint(GetPoint());
-
-			if (m_frameCounter==3) {
-				DrawSegments();
-				m_frameCounter = 0;
-			}
-			m_frameCounter++;
 		}
-		/*
-		//	right clicked
-		if (Input.GetMouseButtonDown(1) == true) {
-			m_curColorIndex++;
-			if (m_curColorIndex>=m_maxColors) {
-				m_curColorIndex = 0;
-			}
-			m_brushColor = color_palette[m_curColorIndex];
-		}
-		*/
-		//DestroyAllSprites(m_SpritePersistTime);
-		Bake();
-		/*
-		if (m_bDirty) {
-			Bake();
-			m_bDirty = false;
-		}
-		*/
-	}	
+	}
 }
