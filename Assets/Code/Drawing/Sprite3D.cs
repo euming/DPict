@@ -70,6 +70,7 @@ public class Sprite3D : MonoBehaviour
 	[SerializeField] 	public
 	//private 		
 	Rect			m_FrameRect;	//	upon creation, this Sprite will be the size of this FrameRect
+	static Material	s_mobileShader = null;
 	
 	static public GameObject CreateSprite3D(Texture tex2D)
 	{
@@ -186,11 +187,14 @@ public class Sprite3D : MonoBehaviour
 		//MeshRenderer mr = GetComponent<MeshRenderer>();
 		//Shader shader = Shader.Find("Unlit/Texture");
 		if (this.renderer.sharedMaterial == null) {	//	maintain previous material if possible. This allows us to add the Sprite3D component to existing geometry
+			/*
 			Shader mobileShader = Shader.Find("Mobile/Transparent/Brush");
 			if (mobileShader == null) {
 				mobileShader = Shader.Find("Unlit/Transparent");	//	fallback default shader
 			}
-			this.renderer.sharedMaterial = new Material(mobileShader);
+			*/
+			//	this.renderer.sharedMaterial = new Material(mobileShader);	//	this creates a memory leak. Don't do this.
+			this.renderer.sharedMaterial = s_mobileShader;
 		}
 		//	NOTE: Should use "Unlit/Texture" for non-transparent textures for maximum efficiency
 		this.renderer.castShadows = false;
@@ -215,6 +219,15 @@ public class Sprite3D : MonoBehaviour
 			m_DefaultQuad = new Quad();
 		}
 		*/
+		//	static stuff
+		if (s_mobileShader == null) {
+			Shader mobileShader = Shader.Find("Mobile/Transparent/Brush");
+			if (mobileShader == null) {
+				mobileShader = Shader.Find("Unlit/Transparent");	//	fallback default shader
+			}
+
+			s_mobileShader = new Material(mobileShader);
+		}
 		if (m_Pivot == null)
 			m_Pivot = new AnchorPoint();
 			
@@ -234,6 +247,19 @@ public class Sprite3D : MonoBehaviour
 			m_Quad.uv = m_DefaultQuad.kQuadUVs;
 			m_Quad.triangles = m_DefaultQuad.kQuadTriangles;
 		}
+	}
+	
+	void CleanupMemory()
+	{
+		//	cleanup memory
+		m_Quad = null;
+		GetComponent<MeshFilter>().sharedMesh = null;
+		this.renderer.sharedMaterial.mainTexture = null;
+		this.renderer.sharedMaterial = null;
+	}
+	
+	void OnDestroy()
+	{
 	}
 	
 	//	if we have a collider, force it to be the same as our mesh.

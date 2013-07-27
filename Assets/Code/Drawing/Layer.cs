@@ -470,9 +470,11 @@ public class Layer : MonoBehaviour
 				}
 			}
 		}
-		Vector3 lastPt = m_prevPointsList[m_prevPointsList.Count-1];
-		m_prevPointsList.Clear();
-		m_prevPointsList.Add(lastPt);
+		if ( m_prevPointsList.Count > 0) {
+			Vector3 lastPt = m_prevPointsList[m_prevPointsList.Count-1];
+			m_prevPointsList.Clear();
+			m_prevPointsList.Add(lastPt);
+		}
 	}
 	
 	public void Clear()
