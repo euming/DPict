@@ -14,7 +14,7 @@
 
 using UnityEngine;
 using System.Collections;
-
+using System.Collections.Generic;
 
 [System.Serializable] // Required so it shows up in the inspector 
 [AddComponentMenu ("DPict/LayerBake")]
@@ -23,6 +23,7 @@ public class LayerBake : MonoBehaviour
 	public Texture		m_BakeTo;
 	bool				m_bBake;
 	public bool			m_bFastBake = true;
+	public List<Layer>	m_BakeLayers = new List<Layer>();
 	
 	void Awake()
 	{
@@ -72,6 +73,13 @@ public class LayerBake : MonoBehaviour
 		}
 	}
 	
+	void DestroySprites()
+	{
+		foreach(Layer layer in m_BakeLayers) {
+			layer.DestroyAllSprites(0.0f);
+		}
+	}
+	
 	/*
 	void UpdateTextureCPP( int nativeTexID )
 	{
@@ -104,5 +112,7 @@ public class LayerBake : MonoBehaviour
 		else {
 			BakeSlow();
 		}
+		
+		DestroySprites();
 	}
 }

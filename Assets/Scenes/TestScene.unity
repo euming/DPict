@@ -281,6 +281,7 @@ MonoBehaviour:
   m_RenderCamera: {fileID: 0}
   m_bFastRender: 0
   m_bStretchSpriteRender: 0
+  m_numStretchSprites: 2
   m_myBrush: {fileID: 120915132}
   m_bDrawEndPts: 0
 --- !u!114 &120915132
@@ -581,6 +582,8 @@ MonoBehaviour:
   m_Name: 
   m_BakeTo: {fileID: 8400000, guid: 406f99d92c70fd648a4cac61875ccdf9, type: 2}
   m_bFastBake: 1
+  m_BakeLayers:
+  - {fileID: 1599190798}
 --- !u!1 &567840339
 GameObject:
   m_ObjectHideFlags: 0
@@ -795,6 +798,7 @@ MonoBehaviour:
   m_RenderCamera: {fileID: 311575339}
   m_bFastRender: 1
   m_bStretchSpriteRender: 1
+  m_numStretchSprites: 2
   m_myBrush: {fileID: 1903378702}
   m_bDrawEndPts: 1
 --- !u!23 &694425580
@@ -1039,6 +1043,7 @@ MonoBehaviour:
   m_RenderCamera: {fileID: 0}
   m_bFastRender: 0
   m_bStretchSpriteRender: 0
+  m_numStretchSprites: 2
   m_myBrush: {fileID: 733306006}
   m_bDrawEndPts: 0
 --- !u!1 &777517002
@@ -1264,6 +1269,7 @@ MonoBehaviour:
   m_RenderCamera: {fileID: 311575339}
   m_bFastRender: 1
   m_bStretchSpriteRender: 1
+  m_numStretchSprites: 2
   m_myBrush: {fileID: 1903378702}
   m_bDrawEndPts: 1
 --- !u!114 &1060638558
@@ -2113,6 +2119,7 @@ MonoBehaviour:
   m_RenderCamera: {fileID: 311575339}
   m_bFastRender: 1
   m_bStretchSpriteRender: 1
+  m_numStretchSprites: 1
   m_myBrush: {fileID: 1903378702}
   m_bDrawEndPts: 1
 --- !u!65 &1599190799
@@ -2401,6 +2408,7 @@ MonoBehaviour:
   m_RenderCamera: {fileID: 311575339}
   m_bFastRender: 1
   m_bStretchSpriteRender: 1
+  m_numStretchSprites: 2
   m_myBrush: {fileID: 1903378702}
   m_bDrawEndPts: 1
 --- !u!1 &1654664521
@@ -2923,5 +2931,6 @@ MonoBehaviour:
   m_RenderCamera: {fileID: 0}
   m_bFastRender: 0
   m_bStretchSpriteRender: 0
+  m_numStretchSprites: 2
   m_myBrush: {fileID: 1903378702}
   m_bDrawEndPts: 0

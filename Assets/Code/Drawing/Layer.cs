@@ -20,7 +20,7 @@ public class Layer : MonoBehaviour
 	Vector3[]			m_prevPoints = null;
 	int					m_frameCounter;
 	bool				m_bIsDrawing;
-	float				m_BrushLineDensity = 3.5f;
+	float				m_BrushLineDensity = 2.75f;	//	2.75 = best mix of performance and quality
 	bool				m_bIsSubscriberOfTouchListener;
 	
 	List<GameObject>	m_spriteList = new List<GameObject>();
@@ -30,6 +30,7 @@ public class Layer : MonoBehaviour
 	//	use slow render for brushes and other things that need to directly modify the texture
 	public bool m_bFastRender = true;	//	uses polygons rather than direct texture access to draw brushes
 	public bool m_bStretchSpriteRender = true;	//	stretch a brush across the space between user input points
+	public int	m_numStretchSprites = 2;
 	
 	/*
 	//	brush stuff
@@ -262,7 +263,7 @@ public class Layer : MonoBehaviour
 		
 		for(int ii=idx0; ii<idx1; ii++) {		//	actual points
 			if (m_bStretchSpriteRender) {
-				CreateStretchedBrushGO(m_myBrush, m_prevPoints[ii], m_prevPoints[ii+1]);
+				CreateStretchedBrushGO(m_myBrush, m_prevPoints[ii], m_prevPoints[ii+1], m_numStretchSprites);
 			}
 			else {
 				for(float p=0.0f; p<1.0f; p+=interpolationAmount) {	//	interpolation between points
@@ -339,12 +340,17 @@ public class Layer : MonoBehaviour
 	
 	bool m_bDestroyAllSprites = false;
 	
-	void DestroyAllSprites()
+	public void DestroyAllSprites(float time)
 	{
 		if (m_bDestroyAllSprites == true) {
 			foreach(GameObject go in m_spriteList)
 			{
-				Destroy(go, m_SpritePersistTime);
+				if (time==0.0f) {
+					DestroyImmediate(go);
+				}
+				else {
+					Destroy(go, time);
+				}
 			}
 			m_spriteList.Clear();
 		}
@@ -361,41 +367,49 @@ public class Layer : MonoBehaviour
 		return spriteGO;
 	}
 	
-	GameObject CreateStretchedBrushGO(Brush brush, Vector3 endPt1, Vector3 endPt2)
+	GameObject CreateStretchedBrushGO(Brush brush, Vector3 endPt1, Vector3 endPt2, int numStretchedSprites)
 	{
 		Vector3 midPt = (endPt1 + endPt2) / 2.0f;
 		Vector3 diffPt = endPt2 - endPt1;
 		float len = diffPt.magnitude;		//	difference between pt1 and pt2.
-		GameObject spriteGO = CreateBrushGO(brush, midPt);
-		Sprite3D sprite = spriteGO.GetComponent<Sprite3D>();		//	scale of each sprite is 1.0 with xmin=-0.5, xmax=0.5
 		Vector2		uvMin, uvMax;
 		
 		uvMin = new Vector2(0.50f,0);	//	use the center of the brush's texture for the stretch
 		uvMax = new Vector2(0.50f,1);
-		sprite.SetUVs(uvMin, uvMax);
-		Transform xform = spriteGO.transform;
-		//	figure out the rotation
-		float angle = Mathf.Atan2(diffPt.normalized.y, diffPt.normalized.x);
-		if (angle != 0.0f) {
-			Vector3 newEulerAngles = Vector3.zero;
-			newEulerAngles.z = angle * Mathf.Rad2Deg;
-			spriteGO.transform.localEulerAngles = newEulerAngles;
+		GameObject spriteGO = null;
+			spriteGO = CreateBrushGO(brush, midPt);
+			Sprite3D sprite = spriteGO.GetComponent<Sprite3D>();		//	scale of each sprite is 1.0 with xmin=-0.5, xmax=0.5
+			sprite.SetUVs(uvMin, uvMax);
+			Transform xform = spriteGO.transform;
+			//	figure out the rotation
+			float angle = Mathf.Atan2(diffPt.normalized.y, diffPt.normalized.x);
+			if (angle != 0.0f) {
+				Vector3 newEulerAngles = Vector3.zero;
+				newEulerAngles.z = angle * Mathf.Rad2Deg;
+				spriteGO.transform.localEulerAngles = newEulerAngles;
+			}
+			
+			//	figure out the scale
+			Vector3 newScale = spriteGO.transform.localScale;
+			float spriteWidth = sprite.m_Texture.width;
+			len /= spriteWidth;
+			float scale = len;			//	scale should be 1.0, not 0.0 if pt1 and pt2 are the same.
+			if (scale < 0.0f)
+				scale = 0.01f;
+			newScale.x = scale;
+			spriteGO.transform.localScale = newScale;
+		for(int ii=0; ii<numStretchedSprites; ii++) {
+			Sprite3D newSprite = Instantiate(sprite) as Sprite3D;
+			newSprite.SetUVs(uvMin, uvMax);
+			m_spriteList.Add(newSprite.gameObject);
 		}
-		
-		//	figure out the scale
-		Vector3 newScale = spriteGO.transform.localScale;
-		float spriteWidth = sprite.m_Texture.width;
-		len /= spriteWidth;
-		float scale = len;			//	scale should be 1.0, not 0.0 if pt1 and pt2 are the same.
-		if (scale < 0.0f)
-			scale = 0.01f;
-		newScale.x = scale;
-		spriteGO.transform.localScale = newScale;
 		
 		//	now create two dots at the endpoints
 		if (m_bDrawEndPts) {
-			CreateBrushGO(brush, endPt1);
-			CreateBrushGO(brush, endPt2);
+			for(int ii=0; ii<numStretchedSprites; ii++) {
+				CreateBrushGO(brush, endPt1);
+				CreateBrushGO(brush, endPt2);
+			}
 		}
 		return spriteGO;
 	}
@@ -534,7 +548,7 @@ public class Layer : MonoBehaviour
 			m_brushColor = color_palette[m_curColorIndex];
 		}
 		*/
-		DestroyAllSprites();
+		//DestroyAllSprites(m_SpritePersistTime);
 		Bake();
 		/*
 		if (m_bDirty) {
