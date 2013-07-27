@@ -32,7 +32,7 @@ public class Layer : MonoBehaviour
 	public bool m_bFastRender = true;	//	uses polygons rather than direct texture access to draw brushes
 	public bool m_bStretchSpriteRender = true;	//	stretch a brush across the space between user input points
 	public int	m_numStretchSprites = 2;
-	public float m_userInputSampleRate = 60.0f;		//	sample user imput this many times per second
+	public float m_userInputSampleRate = 90.0f;		//	sample user imput this many times per second
 	/*
 	//	brush stuff
 	float				m_blendValue = 0.333f;
@@ -230,8 +230,6 @@ public class Layer : MonoBehaviour
 			m_prevPoints[ii] = pt;
 		}
 		m_prevPointsList.Clear();
-		m_prevPointsList.Add(new Vector3(pt.x, pt.y, pt.z));
-		m_prevPointsList.Add(new Vector3(pt.x, pt.y, pt.z));
 		m_prevPointsList.Add(new Vector3(pt.x, pt.y, pt.z));
 	}
 	
@@ -545,7 +543,7 @@ public class Layer : MonoBehaviour
 
 	void FixedUpdate()
 	{
-		Time.fixedDeltaTime = 1.0f/m_userInputSampleRate;	//	user input update time
+		//Time.fixedDeltaTime = 1.0f/m_userInputSampleRate;	//	user input update time
 		if (m_bIsDrawing && (Input.GetMouseButton(0) == true)) {
 
 			AddPreviousPoint(GetPoint());
