@@ -385,14 +385,14 @@ public class Layer : MonoBehaviour
 		Vector3 midPt = (endPt1 + endPt2) / 2.0f;
 		Vector3 diffPt = endPt2 - endPt1;
 		float len = diffPt.magnitude;		//	difference between pt1 and pt2.
-		Vector2		uvMin, uvMax;
+		//Vector2		uvMin, uvMax;
 		
-		uvMin = new Vector2(0.50f,0);	//	use the center of the brush's texture for the stretch
-		uvMax = new Vector2(0.50f,1);
+		//uvMin = new Vector2(0.50f,0);	//	use the center of the brush's texture for the stretch
+		//uvMax = new Vector2(0.50f,1);
 		GameObject spriteGO = null;
 			spriteGO = CreateBrushGO(brush, midPt, true);
 			Sprite3D sprite = spriteGO.GetComponent<Sprite3D>();		//	scale of each sprite is 1.0 with xmin=-0.5, xmax=0.5
-			sprite.SetUVs(uvMin, uvMax);
+			//sprite.SetUVs(uvMin, uvMax);
 			Transform xform = spriteGO.transform;
 			//	figure out the rotation
 			float angle = Mathf.Atan2(diffPt.normalized.y, diffPt.normalized.x);
@@ -413,7 +413,7 @@ public class Layer : MonoBehaviour
 			spriteGO.transform.localScale = newScale;
 		for(int ii=0; ii<numStretchedSprites; ii++) {
 			Sprite3D newSprite = Instantiate(sprite) as Sprite3D;
-			newSprite.SetUVs(uvMin, uvMax);
+			//newSprite.SetUVs(uvMin, uvMax);
 			m_spriteList.Add(newSprite.gameObject);
 		}
 		
