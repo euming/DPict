@@ -73,10 +73,20 @@ public class Sprite3D : MonoBehaviour
 	Rect			m_FrameRect;	//	upon creation, this Sprite will be the size of this FrameRect
 	static Material	s_mobileShader = null;
 	static Mesh		s_sharedQuad = null;
+	static Mesh		s_sharedStretchedQuad = null;
+	static Mesh		s_creationMesh = null;
 	
 	static public GameObject CreateSprite3D(Texture tex2D)
 	{
+		GameObject newSprite3D = CreateSprite3D(tex2D, s_sharedQuad);
+		return newSprite3D;
+	}
+	
+	static public GameObject CreateSprite3D(Texture tex2D, Mesh sharedMesh)
+	{
 		if (tex2D == null) return null;	//	fail bail
+		
+		s_creationMesh = sharedMesh;
 		
 		GameObject newSprite3D = new GameObject(tex2D.name+"_Sprite3D");
 //		Frame	frame = newSprite3D.AddComponent<Frame>(); // removed due to warning (slc)
@@ -86,7 +96,12 @@ public class Sprite3D : MonoBehaviour
 		//	sprite3Dcomponent = newSprite3D.GetComponent<Sprite3D>();	//	probably unnecessary
 		sprite3Dcomponent.SetTexture(tex2D);
 		sprite3Dcomponent.InitFrameRect();
-		
+		return newSprite3D;
+	}
+	
+	static public GameObject CreateStretchedSprite3D(Texture tex2D)
+	{
+		GameObject newSprite3D = CreateSprite3D(tex2D, s_sharedStretchedQuad);
 		return newSprite3D;
 	}
 	
@@ -237,6 +252,15 @@ public class Sprite3D : MonoBehaviour
 			s_sharedQuad = CreateNewMesh();
 		}
 		
+		if (s_sharedStretchedQuad == null) {
+			s_sharedStretchedQuad = CreateNewMesh();
+			Vector2		uvMin, uvMax;
+			
+			uvMin = new Vector2(0.50f,0);	//	use the center of the brush's texture for the stretch
+			uvMax = new Vector2(0.50f,1);
+			s_sharedStretchedQuad.uv = GetUVs(uvMin, uvMax);
+		}
+		
 		if (m_Pivot == null)
 			m_Pivot = new AnchorPoint();
 		
@@ -260,7 +284,7 @@ public class Sprite3D : MonoBehaviour
 		if (m_Quad == null) {
 			//	initialize the mesh
 			if (m_bUsingSharedQuad) {
-				m_Quad = s_sharedQuad;	//	use prototype quad if possible
+				m_Quad = s_creationMesh;	//	use prototype quad if possible
 			}
 			else {
 				m_Quad = CreateNewMesh();
@@ -303,20 +327,25 @@ public class Sprite3D : MonoBehaviour
 				kQuadUVs[2] = new Vector2(0, 1);
 				kQuadUVs[3] = new Vector2(1, 1);
 	*/
-	public void SetUVs(Vector2 uvmin, Vector2 uvmax)
+	public Vector2[] GetUVs(Vector2 uvmin, Vector2 uvmax)
 	{
 		Vector2[] newUVs = new Vector2[4];
 		newUVs[0] = new Vector2(uvmax.x, uvmin.y);
 		newUVs[1] = new Vector2(uvmin.x, uvmin.y);
 		newUVs[2] = new Vector2(uvmin.x, uvmax.y);
 		newUVs[3] = new Vector2(uvmax.x, uvmax.y);
+		return newUVs;
+	}
+	
+	public void SetUVs(Vector2 uvmin, Vector2 uvmax)
+	{
 		
 		if (m_bUsingSharedQuad) {
 			m_Quad = CreateNewMesh();
 			m_bUsingSharedQuad = false;
 		}
 		
-		m_Quad.uv = newUVs;
+		m_Quad.uv = GetUVs(uvmin, uvmax);
 	}
 	
 	/*

@@ -259,7 +259,7 @@ public class Layer : MonoBehaviour
 		float	nInterpolations;
 		
 		if (idx0==idx1) {
-			CreateBrushGO(m_myBrush, m_prevPointsList[0]);
+			CreateBrushGO(m_myBrush, m_prevPointsList[0], false);
 		}
 		else {
 			for(int ii=idx0; ii<idx1; ii++) {		//	actual points
@@ -284,7 +284,7 @@ public class Layer : MonoBehaviour
 						}
 						newPt = Vector3.Lerp(m_prevPointsList[ii], m_prevPointsList[ii+1], p);
 						if (this.m_bFastRender == true) {
-							CreateBrushGO(m_myBrush, newPt);
+							CreateBrushGO(m_myBrush, newPt, false);
 						}
 						else {
 							PaintBrush(newPt, m_myBrush);
@@ -364,9 +364,15 @@ public class Layer : MonoBehaviour
 		m_bDestroyAllSprites = false;
 	}
 	
-	GameObject CreateBrushGO(Brush brush, Vector3 worldPos)
+	GameObject CreateBrushGO(Brush brush, Vector3 worldPos, bool bStretchedSprite)
 	{
-		GameObject spriteGO = Sprite3D.CreateSprite3D(brush.GetTexture());
+		GameObject spriteGO = null;
+		if (bStretchedSprite) {
+			spriteGO = Sprite3D.CreateStretchedSprite3D(brush.GetTexture());
+		}
+		else {
+			spriteGO = Sprite3D.CreateSprite3D(brush.GetTexture());
+		}
 		spriteGO.transform.position = worldPos;
 		spriteGO.transform.parent = this.transform;
 		spriteGO.layer = this.gameObject.layer;
@@ -384,7 +390,7 @@ public class Layer : MonoBehaviour
 		uvMin = new Vector2(0.50f,0);	//	use the center of the brush's texture for the stretch
 		uvMax = new Vector2(0.50f,1);
 		GameObject spriteGO = null;
-			spriteGO = CreateBrushGO(brush, midPt);
+			spriteGO = CreateBrushGO(brush, midPt, true);
 			Sprite3D sprite = spriteGO.GetComponent<Sprite3D>();		//	scale of each sprite is 1.0 with xmin=-0.5, xmax=0.5
 			sprite.SetUVs(uvMin, uvMax);
 			Transform xform = spriteGO.transform;
@@ -414,8 +420,8 @@ public class Layer : MonoBehaviour
 		//	now create two dots at the endpoints
 		if (m_bDrawEndPts) {
 			for(int ii=0; ii<numStretchedSprites; ii++) {
-				CreateBrushGO(brush, endPt1);
-				CreateBrushGO(brush, endPt2);
+				CreateBrushGO(brush, endPt1, false);
+				CreateBrushGO(brush, endPt2, false);
 			}
 		}
 		return spriteGO;
