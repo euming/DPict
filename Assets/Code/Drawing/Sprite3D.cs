@@ -67,10 +67,12 @@ public class Sprite3D : MonoBehaviour
 	[SerializeField] 	public 		AnchorPoint		m_Pivot;
 						public		bool			m_bFitWidth=false;		//	Scale this to fit the width of our parent.
 						private		Mesh			m_Quad;				//	generate this according to the Sprite given
+									bool			m_bUsingSharedQuad = false;
 	[SerializeField] 	public
 	//private 		
 	Rect			m_FrameRect;	//	upon creation, this Sprite will be the size of this FrameRect
 	static Material	s_mobileShader = null;
+	static Mesh		s_sharedQuad = null;
 	
 	static public GameObject CreateSprite3D(Texture tex2D)
 	{
@@ -196,6 +198,7 @@ public class Sprite3D : MonoBehaviour
 			//	this.renderer.sharedMaterial = new Material(mobileShader);	//	this creates a memory leak. Don't do this.
 			this.renderer.sharedMaterial = s_mobileShader;
 		}
+		
 		//	NOTE: Should use "Unlit/Texture" for non-transparent textures for maximum efficiency
 		this.renderer.castShadows = false;
 		this.renderer.receiveShadows = false;
@@ -228,24 +231,41 @@ public class Sprite3D : MonoBehaviour
 
 			s_mobileShader = new Material(mobileShader);
 		}
+		
+		if (s_sharedQuad == null) {
+			//	initialize the mesh
+			s_sharedQuad = CreateNewMesh();
+		}
+		
 		if (m_Pivot == null)
 			m_Pivot = new AnchorPoint();
-			
+		
+		m_bUsingSharedQuad = true;
 		CreateMesh();
 		InitializeMeshRenderer();
 		SetTexture(m_Texture);
+	}
+	
+	Mesh CreateNewMesh()
+	{
+		Mesh mesh = new Mesh();
+		mesh.vertices = m_DefaultQuad.kQuadVertices;
+		mesh.uv = m_DefaultQuad.kQuadUVs;
+		mesh.triangles = m_DefaultQuad.kQuadTriangles;
+		return mesh;
 	}
 	
 	public void CreateMesh()
 	{
 		if (m_Quad == null) {
 			//	initialize the mesh
-			m_Quad = new Mesh();
-			
+			if (m_bUsingSharedQuad) {
+				m_Quad = s_sharedQuad;	//	use prototype quad if possible
+			}
+			else {
+				m_Quad = CreateNewMesh();
+			}
 			GetComponent<MeshFilter>().sharedMesh = m_Quad;
-			m_Quad.vertices = m_DefaultQuad.kQuadVertices;
-			m_Quad.uv = m_DefaultQuad.kQuadUVs;
-			m_Quad.triangles = m_DefaultQuad.kQuadTriangles;
 		}
 	}
 	
@@ -260,6 +280,7 @@ public class Sprite3D : MonoBehaviour
 	
 	void OnDestroy()
 	{
+		CleanupMemory();
 	}
 	
 	//	if we have a collider, force it to be the same as our mesh.
@@ -289,6 +310,11 @@ public class Sprite3D : MonoBehaviour
 		newUVs[1] = new Vector2(uvmin.x, uvmin.y);
 		newUVs[2] = new Vector2(uvmin.x, uvmax.y);
 		newUVs[3] = new Vector2(uvmax.x, uvmax.y);
+		
+		if (m_bUsingSharedQuad) {
+			m_Quad = CreateNewMesh();
+			m_bUsingSharedQuad = false;
+		}
 		
 		m_Quad.uv = newUVs;
 	}
