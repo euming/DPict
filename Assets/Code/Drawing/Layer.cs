@@ -145,8 +145,8 @@ public class Layer : MonoBehaviour
 	public void OnMouseUpListener(int buttonNo)
 	{
 		if (this.enabled) {
-			DrawSegments();
 			m_bIsDrawing = false;
+			DrawSegments();
 		}
 	}
 	
@@ -479,7 +479,9 @@ public class Layer : MonoBehaviour
 		if ( m_prevPointsList.Count > 0) {
 			Vector3 lastPt = m_prevPointsList[m_prevPointsList.Count-1];
 			m_prevPointsList.Clear();
-			m_prevPointsList.Add(lastPt);
+			if (m_bIsDrawing) {
+				m_prevPointsList.Add(lastPt);
+			}
 		}
 	}
 	
