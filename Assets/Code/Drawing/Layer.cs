@@ -349,6 +349,7 @@ public class Layer : MonoBehaviour
 	
 	public void DestroyAllSprites(float time)
 	{
+		//return;	//	test not destroying stuff
 		if (m_bDestroyAllSprites == true) {
 			foreach(GameObject go in m_spriteList)
 			{
@@ -390,7 +391,8 @@ public class Layer : MonoBehaviour
 		//uvMin = new Vector2(0.50f,0);	//	use the center of the brush's texture for the stretch
 		//uvMax = new Vector2(0.50f,1);
 		GameObject spriteGO = null;
-			spriteGO = CreateBrushGO(brush, midPt, true);
+			//spriteGO = CreateBrushGO(brush, midPt, true);
+			spriteGO = CreateBrushGO(brush, endPt1, true);
 			Sprite3D sprite = spriteGO.GetComponent<Sprite3D>();		//	scale of each sprite is 1.0 with xmin=-0.5, xmax=0.5
 			//sprite.SetUVs(uvMin, uvMax);
 			Transform xform = spriteGO.transform;

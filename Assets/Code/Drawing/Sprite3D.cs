@@ -75,6 +75,7 @@ public class Sprite3D : MonoBehaviour
 	static Mesh		s_sharedQuad = null;
 	static Mesh		s_sharedStretchedQuad = null;
 	static Mesh		s_creationMesh = null;
+	Mesh			m_creationMesh = null;
 	
 	static public GameObject CreateSprite3D(Texture tex2D)
 	{
@@ -95,7 +96,6 @@ public class Sprite3D : MonoBehaviour
 		newSprite3D.AddComponent<Frame>(); // added due to warning - leak? (slc)
 		//	sprite3Dcomponent = newSprite3D.GetComponent<Sprite3D>();	//	probably unnecessary
 		sprite3Dcomponent.SetTexture(tex2D);
-		sprite3Dcomponent.InitFrameRect();
 		return newSprite3D;
 	}
 	
@@ -194,7 +194,7 @@ public class Sprite3D : MonoBehaviour
 		
 		//	SetAutomaticDefaultLike(defaultSpriteObj, defaultSpriteComponent.GetType());
 
-		this.SetPivot(defaultSpriteComponent.m_Pivot);
+		//this.SetPivot(defaultSpriteComponent.m_Pivot);
 	}
 
 	
@@ -250,6 +250,15 @@ public class Sprite3D : MonoBehaviour
 		if (s_sharedQuad == null) {
 			//	initialize the mesh
 			s_sharedQuad = CreateNewMesh();
+			Vector3[] newVerts = new Vector3[4];
+			float xoff = -0.5f;
+			float yoff = -0.5f;
+			newVerts[0] = new Vector3(xoff+0.0f, yoff+0.0f, 0.0f);
+			newVerts[1] = new Vector3(xoff+1.0f, yoff+0.0f, 0.0f);
+			newVerts[2] = new Vector3(xoff+1.0f, yoff+1.0f, 0.0f);
+			newVerts[3] = new Vector3(xoff+0.0f, yoff+1.0f, 0.0f);
+			s_sharedQuad.vertices = newVerts;
+			this.ScaleMesh(s_sharedQuad, s_sharedQuad.vertices, 128, 128);
 		}
 		
 		if (s_sharedStretchedQuad == null) {
@@ -259,6 +268,16 @@ public class Sprite3D : MonoBehaviour
 			uvMin = new Vector2(0.50f,0);	//	use the center of the brush's texture for the stretch
 			uvMax = new Vector2(0.50f,1);
 			s_sharedStretchedQuad.uv = GetUVs(uvMin, uvMax);
+			
+			Vector3[] newVerts = new Vector3[4];
+			float xoff = 0.0f;
+			float yoff = -0.5f;
+			newVerts[0] = new Vector3(xoff+0.0f, yoff+0.0f, 0.0f);
+			newVerts[1] = new Vector3(xoff+1.0f, yoff+0.0f, 0.0f);
+			newVerts[2] = new Vector3(xoff+1.0f, yoff+1.0f, 0.0f);
+			newVerts[3] = new Vector3(xoff+0.0f, yoff+1.0f, 0.0f);
+			s_sharedStretchedQuad.vertices = newVerts;
+			this.ScaleMesh(s_sharedStretchedQuad, s_sharedStretchedQuad.vertices, 128, 128);
 		}
 		
 		if (m_Pivot == null)
@@ -285,6 +304,7 @@ public class Sprite3D : MonoBehaviour
 			//	initialize the mesh
 			if (m_bUsingSharedQuad) {
 				m_Quad = s_creationMesh;	//	use prototype quad if possible
+				this.m_creationMesh = s_creationMesh;
 			}
 			else {
 				m_Quad = CreateNewMesh();
@@ -374,7 +394,8 @@ public class Sprite3D : MonoBehaviour
 		if (this.renderer && this.renderer.sharedMaterial) {
 			this.renderer.sharedMaterial.mainTexture = m_Texture;
 		}
-		SetPivot(m_Pivot);
+		InitFrameRect();
+		//SetPivot(m_Pivot);
 		//MeshRenderer mr = GetComponent<MeshRenderer>();
 		//mr.material.SetTexture("_MainTex", m_Texture);
 		//name = m_Texture.name + "_Sprite3D";
@@ -393,7 +414,7 @@ public class Sprite3D : MonoBehaviour
 	
 	public void Refresh()
 	{
-		SetPivot(m_Pivot);
+		//SetPivot(m_Pivot);
 	}
 
 	//	script methods
@@ -419,6 +440,29 @@ public class Sprite3D : MonoBehaviour
 		return m_FrameRect;
 	}
 	
+	public void ScaleMesh(Mesh mesh, Vector3[] unitVerts, float width, float height)
+	{
+		Vector3[] verts = new Vector3[4];
+		for(int ii=0; ii<4; ii++) {
+			verts[ii].x = unitVerts[ii].x * width;
+			verts[ii].y = unitVerts[ii].y * height;
+		}
+		mesh.vertices = verts;
+	}
+	
+	public void ScaleSprite(float width, float height)
+	{
+		ScaleMesh(m_Quad, m_creationMesh.vertices, width, height);
+		GetComponent<MeshFilter>().sharedMesh = m_Quad;
+	}
+	
+	public void ScaleSpriteToTexture(Texture2D tex2D)
+	{
+		if (tex2D==null) return;	//	early bail
+		float width=tex2D.width, height=tex2D.height;
+		ScaleSprite(width, height);
+	}
+
 	public void SetPivot(AnchorPoint pv)
 	{
 		System.String msg = "Sprite3D::SetPivot: " + this.transform.name + " - (" + pv.horiz.ToString() + ", " + pv.vert.ToString() + ")\n";
@@ -433,16 +477,17 @@ public class Sprite3D : MonoBehaviour
 		yoff = -relOffset.y;		
 
 		Vector3[] verts = new Vector3[4];
-		verts[0] = new Vector3(xoff-.5f, yoff-.5f, 0.0f);
-		verts[1] = new Vector3(xoff+.5f, yoff-.5f, 0.0f);
-		verts[2] = new Vector3(xoff+.5f, yoff+.5f, 0.0f);
-		verts[3] = new Vector3(xoff-.5f, yoff+.5f, 0.0f);	
+		
+		verts[0] = new Vector3(xoff+this.m_creationMesh.vertices[0].x, yoff+this.m_creationMesh.vertices[0].y, 0.0f);
+		verts[1] = new Vector3(xoff+this.m_creationMesh.vertices[1].x, yoff+this.m_creationMesh.vertices[1].y, 0.0f);
+		verts[2] = new Vector3(xoff+this.m_creationMesh.vertices[2].x, yoff+this.m_creationMesh.vertices[2].y, 0.0f);
+		verts[3] = new Vector3(xoff+this.m_creationMesh.vertices[3].x, yoff+this.m_creationMesh.vertices[3].y, 0.0f);	
 		
 		float width=256.0f, height=256.0f;
-//		if (m_FrameRect != null) { // removed due to warning - will always be true (slc)
+		if (this.m_Texture != null) { // removed due to warning - will always be true (slc)
 			width = m_FrameRect.width;
 			height = m_FrameRect.height;
-//		}
+		}
 		
 		if (m_bFitWidth) {
 			if (this.gameObject.transform.parent != null) {
@@ -452,11 +497,13 @@ public class Sprite3D : MonoBehaviour
 				}
 			}
 		}
-		for(int ii=0; ii<4; ii++) {
-			verts[ii].x = verts[ii].x * width;
-			verts[ii].y = verts[ii].y * height;
+		
+		if (this.m_Texture != null) {	//	do this because we offset from m_Quad.vertices above.
+			for(int ii=0; ii<4; ii++) {
+				verts[ii].x = verts[ii].x * width;
+				verts[ii].y = verts[ii].y * height;
+			}
 		}
-
 		//	CreateMesh();		//	this should be created in Awake()
 
 		m_Quad.vertices = verts;
