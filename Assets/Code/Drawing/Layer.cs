@@ -48,6 +48,7 @@ public class Layer : MonoBehaviour
 	//	debugging stuff
 	public bool			m_bDrawEndPts = true;
 	public int			m_numPoints = 0;
+	public bool			m_bDebugDontDestroy = false;
 	
 	static Layer		m_currentLayer;
 	static List<Layer>	m_layerList = new List<Layer>();
@@ -147,6 +148,7 @@ public class Layer : MonoBehaviour
 		if (this.enabled) {
 			m_bIsDrawing = false;
 			DrawSegments();
+			m_prevPointsList.Clear();
 		}
 	}
 	
@@ -249,6 +251,16 @@ public class Layer : MonoBehaviour
 		public Vector3 min;
 	}
 	
+	Vector3 GetSafePoint(int index)
+	{
+		if (index >= m_prevPointsList.Count) {
+			index = m_prevPointsList.Count-1;
+		}
+		else if (index < 0) {
+			index = 0;
+		}
+		return m_prevPointsList[index];
+	}
 	void InterpolatePreviousPoints(int idx0, int idx1)
 	{
 		Vector3 newPt, prevPt;
@@ -264,12 +276,10 @@ public class Layer : MonoBehaviour
 		else {
 			for(int ii=idx0; ii<idx1; ii++) {		//	actual points
 				if (m_bStretchSpriteRender) {
-					int lastIdx = ii+1;
-					if (lastIdx >= m_prevPointsList.Count) {
-						lastIdx = m_prevPointsList.Count-1;
-					}
-					Vector3 lastPt = m_prevPointsList[lastIdx];
-					CreateStretchedBrushGO(m_myBrush, m_prevPointsList[ii], lastPt, m_numStretchSprites);
+					Vector3 endPt2 = GetSafePoint(ii+1);
+					Vector3 prevEndPt1 = GetSafePoint(ii-1);
+					Vector3 prevEndPt2 = GetSafePoint(ii);
+					CreateStretchedBrushGO(m_myBrush, m_prevPointsList[ii], endPt2, prevEndPt1, prevEndPt2, m_numStretchSprites);
 				}
 				else {
 					for(float p=0.0f; p<1.0f; p+=interpolationAmount) {	//	interpolation between points
@@ -296,6 +306,7 @@ public class Layer : MonoBehaviour
 		}
 	}
 	
+	float m_zoffset = -10.0f;
 	Vector3 GetPoint()
 	{
 		Vector3 hitPoint = Vector3.zero;
@@ -342,6 +353,8 @@ public class Layer : MonoBehaviour
 		else {
 			hitPoint = m_prevPointsList[m_prevPointsList.Count-1];		//	use previous point if we're off screen
 		}
+		
+		hitPoint.z += m_zoffset;
 		return hitPoint;
 	}
 	
@@ -349,7 +362,8 @@ public class Layer : MonoBehaviour
 	
 	public void DestroyAllSprites(float time)
 	{
-		//return;	//	test not destroying stuff
+		if (m_bDebugDontDestroy)
+			return;	//	test not destroying stuff
 		if (m_bDestroyAllSprites == true) {
 			foreach(GameObject go in m_spriteList)
 			{
@@ -381,55 +395,132 @@ public class Layer : MonoBehaviour
 		return spriteGO;
 	}
 	
-	GameObject CreateStretchedBrushGO(Brush brush, Vector3 endPt1, Vector3 endPt2, int numStretchedSprites)
+	int spriteNo = 0;
+	
+	GameObject CreateStretchedBrushGO(Brush brush, Vector3 endPt1, Vector3 endPt2, Vector3 prevEndPt1, Vector3 prevEndpt2, int numStretchedSprites)
 	{
-		Vector3 midPt = (endPt1 + endPt2) / 2.0f;
+//		Vector3 midPt = (endPt1 + endPt2) / 2.0f;
 		Vector3 diffPt = endPt2 - endPt1;
-		float len = diffPt.magnitude;		//	difference between pt1 and pt2.
+		Vector3 prevDiffPt = prevEndpt2 - prevEndPt1;
+		float len = diffPt.magnitude;		//	difference between pt1 and pt2. in screen pixel units (and world space)
 		//Vector2		uvMin, uvMax;
 		
 		//uvMin = new Vector2(0.50f,0);	//	use the center of the brush's texture for the stretch
 		//uvMax = new Vector2(0.50f,1);
+		//Vector3 startPt1 = midPt;
+		Vector3 startPt1 = endPt1;
 		GameObject spriteGO = null;
-			//spriteGO = CreateBrushGO(brush, midPt, true);
-			spriteGO = CreateBrushGO(brush, endPt1, true);
+		//	angle segment in world space
+		float angle = Mathf.Atan2(diffPt.normalized.y, diffPt.normalized.x);
+		//	figure out the angle (theta) between the two segments, current and previous
+		float prevAngle = Mathf.Atan2(prevDiffPt.normalized.y, prevDiffPt.normalized.x);
+		//	difference between previous and current.
+		//float theta = angle - prevAngle;
+		float theta = Mathf.DeltaAngle(prevAngle*Mathf.Rad2Deg, angle*Mathf.Rad2Deg) * Mathf.Deg2Rad;
+		//	need to push the current start point forward a bit according to the angle
+		float brushWidth = this.m_myBrush.m_brushWidth;
+		float	extraPatchWidth = brushWidth;
+		if (theta < 0.0f) theta = -theta;	//	no negative angles
+		float pushDist = brushWidth * Mathf.Tan(theta / 2.0f);
+		//pushDist = 0.0f;
+		startPt1 += diffPt.normalized * pushDist;	//	push forward a little bit
+			spriteGO = CreateBrushGO(brush, startPt1, true);
 			Sprite3D sprite = spriteGO.GetComponent<Sprite3D>();		//	scale of each sprite is 1.0 with xmin=-0.5, xmax=0.5
 			//sprite.SetUVs(uvMin, uvMax);
 			Transform xform = spriteGO.transform;
-			//	figure out the rotation
-			float angle = Mathf.Atan2(diffPt.normalized.y, diffPt.normalized.x);
-			if (angle != 0.0f) {
+			//	figure out the rotation of drawSegment in screen space
+			if (angle != 0.0f) {	//	rotate our segment
 				Vector3 newEulerAngles = Vector3.zero;
 				newEulerAngles.z = angle * Mathf.Rad2Deg;
 				spriteGO.transform.localEulerAngles = newEulerAngles;
 			}
 			
+			//	name this sprite
+			string newName = spriteNo + "- prev: " + prevAngle + ", cur: " + angle;
+			spriteNo++;
+			spriteGO.name = newName;
 			//	figure out the scale
 			Vector3 newScale = spriteGO.transform.localScale;
 			float spriteWidth = sprite.m_Texture.width;
-			len /= spriteWidth;
+			len -= extraPatchWidth + pushDist;		//	leave a bit of room for the patch. Also, subtract the amount we pushed forward so the patch always starts from the same point
+			len /= spriteWidth;			//	since our brush is unit size, we need to change our units for the scale accordingly.
 			float scale = len;			//	scale should be 1.0, not 0.0 if pt1 and pt2 are the same.
+			//scale -= 0.5f;				//	subtract half a brush width for patch triangle(s)
 			if (scale < 0.0f)
 				scale = 0.01f;
+
+		/*
+			//	breakpoint for debugging
+			if (scale > 1.0f) {
+				newScale.y = 1.0f;
+			}
+		*/
 			newScale.x = scale;
-			spriteGO.transform.localScale = newScale;
+			spriteGO.transform.localScale = newScale;		//	this is the number of "brush widths" long
+			m_spriteList.Add(spriteGO);
+		
+		/*
+		//	create a marker sprite
+		Sprite3D markerSprite = Instantiate(sprite) as Sprite3D;
+		markerSprite.transform.position = endPt1;
+		newScale.x = 0.001f;
+		markerSprite.transform.localScale = newScale;
+		for(int ii=0; ii<numStretchedSprites; ii++) {
+			Sprite3D newSprite = Instantiate(sprite) as Sprite3D;
+			//newSprite.SetUVs(uvMin, uvMax);
+			m_spriteList.Add(newSprite.gameObject);
+		}
+		*/
+		
+		//	create patch sprite
+		Sprite3D patchSprite = Instantiate(sprite) as Sprite3D;
+		Vector3 patchStartPt1 = prevEndpt2 + prevDiffPt.normalized * (-extraPatchWidth);
+		patchSprite.transform.position = patchStartPt1;
+		if (angle != 0.0f) {	//	rotate our segment
+			Vector3 newEulerAngles = Vector3.zero;
+			newEulerAngles.z = prevAngle * Mathf.Rad2Deg;
+			patchSprite.transform.localEulerAngles = newEulerAngles;
+			patchSprite.transform.parent = this.transform;			
+		}
+		{
+			//	figure out the scale
+			Vector3 patchScale = Vector3.one;
+			//pushDist = brushWidth * Mathf.Tan(theta / 2.0f);
+			len = extraPatchWidth - pushDist;
+			len /= spriteWidth;			//	since our brush is unit size, we need to change our units for the scale accordingly.
+			scale = len;			//	scale should be 1.0, not 0.0 if pt1 and pt2 are the same.
+			//scale -= 0.5f;				//	subtract half a brush width for patch triangle(s)
+			if (scale < 0.0f)
+				scale = 0.01f;
+			patchScale.x = len;
+			patchSprite.transform.localScale = patchScale;
+			patchSprite.name = spriteGO + " patch";
+		}
+		m_spriteList.Add(patchSprite.gameObject);
+		
+		
+		
 		for(int ii=0; ii<numStretchedSprites; ii++) {
 			Sprite3D newSprite = Instantiate(sprite) as Sprite3D;
 			//newSprite.SetUVs(uvMin, uvMax);
 			m_spriteList.Add(newSprite.gameObject);
 		}
 		
+		
 		//	now create two dots at the endpoints
 		if (m_bDrawEndPts) {
+			if (numStretchedSprites <= 0)
+				numStretchedSprites = 1;
 			for(int ii=0; ii<numStretchedSprites; ii++) {
 				CreateBrushGO(brush, endPt1, false);
-				CreateBrushGO(brush, endPt2, false);
+				//CreateBrushGO(brush, endPt2, false);
 			}
 		}
 		return spriteGO;
 	}
 	
 	int		m_bakeEveryNFrames = 1;
+	int		m_currentIdxCounter = 0;
 	public void DrawSegments()
 	{
 		int		buffer = 2;
@@ -459,7 +550,8 @@ public class Layer : MonoBehaviour
 			*/
 			//InterpolatePreviousPoints(m_prevPointsList.Count-buffer-nSegments, m_prevPointsList.Count-buffer);
 			if (m_prevPointsList.Count > 0) {
-				InterpolatePreviousPoints(0, m_prevPointsList.Count-1);
+				InterpolatePreviousPoints(m_currentIdxCounter, m_prevPointsList.Count-1);
+				
 				Bake();
 			}
 			//Dirty();
@@ -478,12 +570,14 @@ public class Layer : MonoBehaviour
 				}
 			}
 		}
-		if ( m_prevPointsList.Count > 0) {
-			Vector3 lastPt = m_prevPointsList[m_prevPointsList.Count-1];
-			m_prevPointsList.Clear();
+		if ( m_prevPointsList.Count > 2) {
+			m_prevPointsList.RemoveRange(0, m_prevPointsList.Count-3);
+			m_currentIdxCounter = 2;
+			/*
 			if (m_bIsDrawing) {
 				m_prevPointsList.Add(lastPt);
 			}
+			*/
 		}
 	}
 	
