@@ -74,6 +74,7 @@ public class Sprite3D : MonoBehaviour
 	static Material	s_mobileShader = null;
 	static Mesh		s_sharedQuad = null;
 	static Mesh		s_sharedStretchedQuad = null;
+	static Mesh		s_patchTriangle = null;
 	static Mesh		s_creationMesh = null;
 	Mesh			m_creationMesh = null;
 	
@@ -104,6 +105,13 @@ public class Sprite3D : MonoBehaviour
 		GameObject newSprite3D = CreateSprite3D(tex2D, s_sharedStretchedQuad);
 		return newSprite3D;
 	}
+	
+	static public GameObject CreatePatchTriangleSprite3D(Texture tex2D)
+	{
+		GameObject newSprite3D = CreateSprite3D(tex2D, s_patchTriangle);
+		return newSprite3D;
+	}
+	
 	
 	static public GameObject CreateSprite3D(Texture tex2D, Rect fitInThisRect)
 	{
@@ -278,6 +286,25 @@ public class Sprite3D : MonoBehaviour
 			newVerts[3] = new Vector3(xoff+0.0f, yoff+1.0f, 0.0f);
 			s_sharedStretchedQuad.vertices = newVerts;
 			this.ScaleMesh(s_sharedStretchedQuad, s_sharedStretchedQuad.vertices, 128, 128);
+		}
+		
+		if (s_patchTriangle == null) {
+			s_patchTriangle = CreateNewMesh();
+			Vector2		uvMin, uvMax;
+			
+			uvMin = new Vector2(0.50f,0);	//	use the center of the brush's texture for the stretch
+			uvMax = new Vector2(0.50f,1);
+			s_patchTriangle.uv = GetUVs(uvMin, uvMax);
+			
+			Vector3[] newVerts = new Vector3[4];
+			float xoff = -0.5f;
+			float yoff = -0.5f;
+			newVerts[0] = new Vector3(xoff+0.5f, yoff+0.0f, 0.0f);
+			newVerts[1] = new Vector3(xoff+0.5f, yoff+0.0f, 0.0f);
+			newVerts[2] = new Vector3(xoff+1.0f, yoff+1.0f, 0.0f);
+			newVerts[3] = new Vector3(xoff+0.0f, yoff+1.0f, 0.0f);
+			s_patchTriangle.vertices = newVerts;
+			this.ScaleMesh(s_patchTriangle, s_patchTriangle.vertices, 128, 128);
 		}
 		
 		if (m_Pivot == null)

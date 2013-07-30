@@ -379,6 +379,17 @@ public class Layer : MonoBehaviour
 		m_bDestroyAllSprites = false;
 	}
 	
+	GameObject CreatePatchTriangle(Brush brush, Vector3 worldPos)
+	{
+		GameObject spriteGO = null;
+		spriteGO = Sprite3D.CreatePatchTriangleSprite3D(brush.GetTexture());
+		spriteGO.transform.position = worldPos;
+		spriteGO.transform.parent = this.transform;
+		spriteGO.layer = this.gameObject.layer;
+		m_spriteList.Add(spriteGO);
+		return spriteGO;
+	}
+	
 	GameObject CreateBrushGO(Brush brush, Vector3 worldPos, bool bStretchedSprite)
 	{
 		GameObject spriteGO = null;
@@ -476,7 +487,7 @@ public class Layer : MonoBehaviour
 		Sprite3D patchSprite = Instantiate(sprite) as Sprite3D;
 		Vector3 patchStartPt1 = prevEndpt2 + prevDiffPt.normalized * (-extraPatchWidth);
 		patchSprite.transform.position = patchStartPt1;
-		if (angle != 0.0f) {	//	rotate our segment
+		if (prevAngle != 0.0f) {	//	rotate our segment
 			Vector3 newEulerAngles = Vector3.zero;
 			newEulerAngles.z = prevAngle * Mathf.Rad2Deg;
 			patchSprite.transform.localEulerAngles = newEulerAngles;
@@ -499,6 +510,29 @@ public class Layer : MonoBehaviour
 		m_spriteList.Add(patchSprite.gameObject);
 		
 		
+		GameObject patchTriangleGO = CreatePatchTriangle(brush, prevEndpt2);
+		Sprite3D patchTriangleSprite = patchTriangleGO.GetComponent<Sprite3D>();
+		float averageAngle = (prevAngle + angle)/2.0f;
+		if (averageAngle != 0.0f) {	//	rotate our segment
+			Vector3 newEulerAngles = Vector3.zero;
+			newEulerAngles.z = averageAngle * Mathf.Rad2Deg;
+			patchTriangleSprite.transform.localEulerAngles = newEulerAngles;
+			patchTriangleSprite.transform.parent = this.transform;			
+		}
+		{
+			//	figure out the scale
+			Vector3 patchScale = Vector3.one;
+			//pushDist = brushWidth * Mathf.Tan(theta / 2.0f);
+			len = pushDist * 4.0f;
+			len /= spriteWidth;			//	since our brush is unit size, we need to change our units for the scale accordingly.
+			scale = len;			//	scale should be 1.0, not 0.0 if pt1 and pt2 are the same.
+			//scale -= 0.5f;				//	subtract half a brush width for patch triangle(s)
+			if (scale < 0.0f)
+				scale = 0.01f;
+			patchScale.x = len;
+			patchTriangleSprite.transform.localScale = patchScale;
+			patchTriangleSprite.name = spriteGO + " patch Triangle";
+		}		
 		
 		for(int ii=0; ii<numStretchedSprites; ii++) {
 			Sprite3D newSprite = Instantiate(sprite) as Sprite3D;
