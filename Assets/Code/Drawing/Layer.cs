@@ -419,7 +419,7 @@ public class Layer : MonoBehaviour
 		float theta = Mathf.DeltaAngle(prevAngle*Mathf.Rad2Deg, angle*Mathf.Rad2Deg) * Mathf.Deg2Rad;
 		//	need to push the current start point forward a bit according to the angle
 		float brushWidth = this.m_myBrush.m_brushWidth;
-		float	extraPatchWidth = brushWidth;
+		float	extraPatchWidth = brushWidth/2.0f;
 		if (theta < 0.0f) theta = -theta;	//	no negative angles
 		float pushDist = brushWidth * Mathf.Tan(theta / 2.0f);
 		//pushDist = 0.0f;
@@ -524,7 +524,7 @@ public class Layer : MonoBehaviour
 	public void DrawSegments()
 	{
 		int		buffer = 2;
-		int 	nSegments = 3;//this.m_prevPointsList.Count;
+		int 	nSegments = this.m_prevPointsList.Count;
 		
 		bool	bSlowCPUTextureUpdate = !m_bFastRender;
 		
