@@ -292,8 +292,12 @@ public class Sprite3D : MonoBehaviour
 			s_patchTriangle = CreateNewMesh();
 			Vector2		uvMin, uvMax;
 			
-			uvMin = new Vector2(0.50f,0);	//	use the center of the brush's texture for the stretch
-			uvMax = new Vector2(0.50f,1);
+			//	adjust the UVs to be the same as the width of the brush
+			float brushWidth = 32.0f;
+			float polygonWidth = 128.0f;
+			float brushEdgeToPolyEdgeRatio = brushWidth / polygonWidth;
+			uvMin = new Vector2(0.50f,brushEdgeToPolyEdgeRatio);	//	use the center of the brush's texture for the stretch
+			uvMax = new Vector2(0.50f,1.0f-brushEdgeToPolyEdgeRatio);
 			s_patchTriangle.uv = GetUVs(uvMin, uvMax);
 			
 			Vector3[] newVerts = new Vector3[4];
@@ -304,7 +308,8 @@ public class Sprite3D : MonoBehaviour
 			newVerts[2] = new Vector3(xoff+1.0f, yoff+1.0f, 0.0f);
 			newVerts[3] = new Vector3(xoff+0.0f, yoff+1.0f, 0.0f);
 			s_patchTriangle.vertices = newVerts;
-			this.ScaleMesh(s_patchTriangle, s_patchTriangle.vertices, 128, 128);
+			
+			this.ScaleMesh(s_patchTriangle, s_patchTriangle.vertices, brushWidth*2.0f, brushWidth*2.0f);
 		}
 		
 		if (m_Pivot == null)

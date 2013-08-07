@@ -517,13 +517,13 @@ public class Layer : MonoBehaviour
 			Vector3 newEulerAngles = Vector3.zero;
 			newEulerAngles.z = averageAngle * Mathf.Rad2Deg;
 			patchTriangleSprite.transform.localEulerAngles = newEulerAngles;
-			patchTriangleSprite.transform.parent = this.transform;			
+			patchTriangleSprite.transform.parent = this.transform;
 		}
 		{
 			//	figure out the scale
 			Vector3 patchScale = Vector3.one;
 			//pushDist = brushWidth * Mathf.Tan(theta / 2.0f);
-			len = pushDist * 4.0f;
+			len = pushDist * 8.0f;
 			len /= spriteWidth;			//	since our brush is unit size, we need to change our units for the scale accordingly.
 			scale = len;			//	scale should be 1.0, not 0.0 if pt1 and pt2 are the same.
 			//scale -= 0.5f;				//	subtract half a brush width for patch triangle(s)
