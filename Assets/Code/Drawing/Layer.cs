@@ -17,7 +17,7 @@ public class Layer : MonoBehaviour
 	public int			m_textureWidth;
 	public int			m_textureHeight;
 	int					m_maxPoints=128;
-	Vector3[]			m_prevPoints = null;
+	//Vector3[]			m_prevPoints = null;
 	List<Vector3>		m_prevPointsList = new List<Vector3>();
 	int					m_frameCounter;
 	bool				m_bIsDrawing;
@@ -65,7 +65,7 @@ public class Layer : MonoBehaviour
 		m_layerList.Add(this);
 		m_bIsDrawing = false;
 	
-		m_prevPoints = new Vector3[m_maxPoints];
+		//m_prevPoints = new Vector3[m_maxPoints];
 	    renderer.material.mainTexture = InstantiateTexture();
 		Clear();
 		
@@ -230,19 +230,27 @@ public class Layer : MonoBehaviour
 	
 	public void StartPoint(Vector3 pt)
 	{
+		/*
 		for(int ii=0; ii<m_prevPoints.Length; ii++) {
 			m_prevPoints[ii] = pt;
 		}
+		*/
 		m_prevPointsList.Clear();
 		m_prevPointsList.Add(new Vector3(pt.x, pt.y, pt.z));
 	}
 	
 	void AddPreviousPoint(Vector3 pt)	//	add to the end of the list
 	{
+		/*
 		for(int ii=0; ii<m_prevPoints.Length-1; ii++) {
 			m_prevPoints[ii] = m_prevPoints[ii+1];
 		}
 		m_prevPoints[m_prevPoints.Length-1] = pt;
+		*/
+		//	clean up input. Don't have duplicate points
+		Vector3 lastPt = m_prevPointsList[m_prevPointsList.Count-1];
+		if (lastPt == pt) return;	//	early bail
+		
 		m_prevPointsList.Add(new Vector3(pt.x, pt.y, pt.z));
 		m_numPoints = m_prevPointsList.Count;
 	}
@@ -430,6 +438,12 @@ public class Layer : MonoBehaviour
 		//	difference between previous and current.
 		//float theta = angle - prevAngle;
 		float theta = Mathf.DeltaAngle(prevAngle*Mathf.Rad2Deg, angle*Mathf.Rad2Deg) * Mathf.Deg2Rad;
+		//	breakpoint
+		/*
+		if (theta*Mathf.Rad2Deg >= 179.0f) {
+			theta = 0.0f;
+		}
+		*/
 		float posTheta = theta;
 		//	need to push the current start point forward a bit according to the angle
 		float brushWidth = this.m_myBrush.m_brushWidth;
@@ -443,14 +457,14 @@ public class Layer : MonoBehaviour
 			//sprite.SetUVs(uvMin, uvMax);
 			Transform xform = spriteGO.transform;
 			//	figure out the rotation of drawSegment in screen space
-			if (angle != 0.0f) {	//	rotate our segment
+			{	//	rotate our segment
 				Vector3 newEulerAngles = Vector3.zero;
 				newEulerAngles.z = angle * Mathf.Rad2Deg;
 				spriteGO.transform.localEulerAngles = newEulerAngles;
 			}
 			
 			//	name this sprite
-			string newName = spriteNo + "- prev: " + prevAngle*Mathf.Rad2Deg + ", cur: " + angle*Mathf.Rad2Deg;
+			string newName = spriteNo + " prev: " + prevAngle*Mathf.Rad2Deg + " cur: " + angle*Mathf.Rad2Deg + "= theta: " + theta*Mathf.Rad2Deg;
 			spriteNo++;
 			spriteGO.name = newName;
 			//	figure out the scale
@@ -526,7 +540,7 @@ public class Layer : MonoBehaviour
 			if (prevAngle - angle < 0.0f) {		//	flip 180 degrees for reverse case.
 				averageAngle = averageAngle + Mathf.PI;
 			}
-			if (averageAngle != 0.0f) {	//	rotate our segment
+			{	//	rotate our segment
 				Vector3 newEulerAngles = Vector3.zero;
 				newEulerAngles.z = averageAngle * Mathf.Rad2Deg;
 				patchTriangleSprite.transform.localEulerAngles = newEulerAngles;
@@ -592,6 +606,7 @@ public class Layer : MonoBehaviour
 			m_myTexture2D.Apply();
 		}
 		else {
+			if (nSegments < 2) return;	//	don't draw until we have enough segments built up
 			/*
 			GameObject spriteGO = Sprite3D.CreateSprite3D(m_myBrush.GetTexture());
 			spriteGO.transform.parent = this.transform;
@@ -706,7 +721,6 @@ public class Layer : MonoBehaviour
 	{
 		//Time.fixedDeltaTime = 1.0f/m_userInputSampleRate;	//	user input update time
 		if (m_bIsDrawing && (Input.GetMouseButton(0) == true)) {
-
 			AddPreviousPoint(GetPoint());
 		}
 	}
