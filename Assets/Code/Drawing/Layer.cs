@@ -447,7 +447,7 @@ public class Layer : MonoBehaviour
 			}
 			
 			//	name this sprite
-			string newName = spriteNo + "- prev: " + prevAngle + ", cur: " + angle;
+			string newName = spriteNo + "- prev: " + prevAngle*Mathf.Rad2Deg + ", cur: " + angle*Mathf.Rad2Deg;
 			spriteNo++;
 			spriteGO.name = newName;
 			//	figure out the scale
@@ -487,7 +487,7 @@ public class Layer : MonoBehaviour
 		Sprite3D patchSprite = Instantiate(sprite) as Sprite3D;
 		Vector3 patchStartPt1 = prevEndpt2 + prevDiffPt.normalized * (-extraPatchWidth);
 		patchSprite.transform.position = patchStartPt1;
-		if (prevAngle != 0.0f) {	//	rotate our segment
+		{	//	rotate our segment
 			Vector3 newEulerAngles = Vector3.zero;
 			newEulerAngles.z = prevAngle * Mathf.Rad2Deg;
 			patchSprite.transform.localEulerAngles = newEulerAngles;
@@ -502,7 +502,7 @@ public class Layer : MonoBehaviour
 			scale = len;			//	scale should be 1.0, not 0.0 if pt1 and pt2 are the same.
 			//scale -= 0.5f;				//	subtract half a brush width for patch triangle(s)
 			if (scale < 0.0f)
-				scale = 0.01f;
+				scale = 0.0f;
 			patchScale.x = len;
 			patchSprite.transform.localScale = patchScale;
 			patchSprite.name = spriteGO + " patch";
@@ -516,6 +516,9 @@ public class Layer : MonoBehaviour
 		GameObject patchTriangleGO = CreatePatchTriangle(brush, prevEndpt2);
 		Sprite3D patchTriangleSprite = patchTriangleGO.GetComponent<Sprite3D>();
 		float averageAngle = (prevAngle + angle)/2.0f;
+		if (prevAngle - angle < 0.0f) {		//	flip 180 degrees for reverse case.
+			averageAngle = averageAngle + Mathf.PI;
+		}
 		if (averageAngle != 0.0f) {	//	rotate our segment
 			Vector3 newEulerAngles = Vector3.zero;
 			newEulerAngles.z = averageAngle * Mathf.Rad2Deg;
@@ -529,6 +532,8 @@ public class Layer : MonoBehaviour
 			patchScale.y = widthScale;
 			patchTriangleSprite.transform.localScale = patchScale;
 			patchTriangleSprite.name = spriteGO + " patch Triangle";
+		}
+		{
 			//	need to move it down in local y-axis a little bit
 			Vector3 localPos = patchTriangleSprite.transform.localPosition;
 			float distFromEndPt2ToPatchCorner = ( 2.0f*brushWidth/(widthScale*2.0f));
