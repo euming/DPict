@@ -529,7 +529,8 @@ public class Layer : MonoBehaviour
 			//scale -= 0.5f;				//	subtract half a brush width for patch triangle(s)
 			if (scale < 0.0f)
 				scale = 0.01f;
-			patchScale.x = len;
+			patchScale.x = Mathf.Sin(theta/2.0f);
+			patchScale.y = Mathf.Cos(theta/2.0f);
 			patchTriangleSprite.transform.localScale = patchScale;
 			patchTriangleSprite.name = spriteGO + " patch Triangle";
 		}		

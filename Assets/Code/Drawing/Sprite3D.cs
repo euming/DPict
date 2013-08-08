@@ -305,8 +305,8 @@ public class Sprite3D : MonoBehaviour
 			float yoff = -0.5f;
 			newVerts[0] = new Vector3(xoff+0.5f, yoff+0.0f, 0.0f);
 			newVerts[1] = new Vector3(xoff+0.5f, yoff+0.0f, 0.0f);
-			newVerts[2] = new Vector3(xoff+1.0f, yoff+1.0f, 0.0f);
-			newVerts[3] = new Vector3(xoff+0.0f, yoff+1.0f, 0.0f);
+			newVerts[2] = new Vector3(xoff+1.5f, yoff+1.0f, 0.0f);
+			newVerts[3] = new Vector3(xoff-0.5f, yoff+1.0f, 0.0f);
 			s_patchTriangle.vertices = newVerts;
 			
 			this.ScaleMesh(s_patchTriangle, s_patchTriangle.vertices, brushWidth*2.0f, brushWidth*2.0f);
