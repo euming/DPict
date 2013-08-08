@@ -518,8 +518,8 @@ public class Layer : MonoBehaviour
 			//	need to scale the standard patch to our hole's exact dimensions
 			float widthScale = Mathf.Cos(theta/2.0f);
 			float lengthScale = Mathf.Sin(theta/2.0f);
-			bool bClockwiseTurn = false;
-			//if (theta < 0.0f) bClockwiseTurn = false;
+			bool bClockwiseTurn = true;
+			if (theta > 0.0f) bClockwiseTurn = false;
 			GameObject patchTriangleGO = CreatePatchTriangle(brush, prevEndpt2, bClockwiseTurn);
 			Sprite3D patchTriangleSprite = patchTriangleGO.GetComponent<Sprite3D>();
 			float averageAngle = (prevAngle + angle)/2.0f;
@@ -538,7 +538,12 @@ public class Layer : MonoBehaviour
 				patchScale.x = lengthScale;
 				patchScale.y = widthScale;
 				patchTriangleSprite.transform.localScale = patchScale;
-				patchTriangleSprite.name = spriteGO + " patch Triangle";
+				if (bClockwiseTurn) {
+					patchTriangleSprite.name = spriteGO + " patchTri";
+				}
+				else {
+					patchTriangleSprite.name = spriteGO + " patchTriCC";
+				}
 			}
 			{
 				//	need to move it down in local y-axis a little bit
