@@ -74,7 +74,8 @@ public class Sprite3D : MonoBehaviour
 	static Material	s_mobileShader = null;
 	static Mesh		s_sharedQuad = null;
 	static Mesh		s_sharedStretchedQuad = null;
-	static Mesh		s_patchTriangle = null;
+	static Mesh		s_patchTriangleClockwise = null;
+	static Mesh		s_patchTriangleCounterClockwise = null;
 	static Mesh		s_creationMesh = null;
 	Mesh			m_creationMesh = null;
 	
@@ -106,9 +107,13 @@ public class Sprite3D : MonoBehaviour
 		return newSprite3D;
 	}
 	
-	static public GameObject CreatePatchTriangleSprite3D(Texture tex2D)
+	static public GameObject CreatePatchTriangleSprite3D(Texture tex2D, bool bClockwiseTurn)
 	{
-		GameObject newSprite3D = CreateSprite3D(tex2D, s_patchTriangle);
+		UnityEngine.Mesh meshToUse = s_patchTriangleClockwise;
+		if (!bClockwiseTurn) {
+			meshToUse = s_patchTriangleCounterClockwise;
+		}
+		GameObject newSprite3D = CreateSprite3D(tex2D, meshToUse);
 		return newSprite3D;
 	}
 	
@@ -288,8 +293,8 @@ public class Sprite3D : MonoBehaviour
 			this.ScaleMesh(s_sharedStretchedQuad, s_sharedStretchedQuad.vertices, 128, 128);
 		}
 		
-		if (s_patchTriangle == null) {
-			s_patchTriangle = CreateNewMesh();
+		if (s_patchTriangleClockwise == null) {
+			s_patchTriangleClockwise = CreateNewMesh();
 			Vector2		uvMin, uvMax;
 			
 			//	adjust the UVs to be the same as the width of the brush
@@ -298,7 +303,7 @@ public class Sprite3D : MonoBehaviour
 			float brushEdgeToPolyEdgeRatio = brushWidth / polygonWidth;
 			uvMin = new Vector2(0.50f,brushEdgeToPolyEdgeRatio);	//	use the center of the brush's texture for the stretch
 			uvMax = new Vector2(0.50f,1.0f-brushEdgeToPolyEdgeRatio);
-			s_patchTriangle.uv = GetUVs(uvMin, uvMax);
+			s_patchTriangleClockwise.uv = GetUVs(uvMin, uvMax);
 			
 			Vector3[] newVerts = new Vector3[4];
 			float xoff = -0.5f;
@@ -307,9 +312,32 @@ public class Sprite3D : MonoBehaviour
 			newVerts[1] = new Vector3(xoff+0.5f, yoff+0.0f, 0.0f);
 			newVerts[2] = new Vector3(xoff+1.5f, yoff+1.0f, 0.0f);
 			newVerts[3] = new Vector3(xoff-0.5f, yoff+1.0f, 0.0f);
-			s_patchTriangle.vertices = newVerts;
+			s_patchTriangleClockwise.vertices = newVerts;
 			
-			this.ScaleMesh(s_patchTriangle, s_patchTriangle.vertices, brushWidth*2.0f, brushWidth*2.0f);
+			this.ScaleMesh(s_patchTriangleClockwise, s_patchTriangleClockwise.vertices, brushWidth*2.0f, brushWidth*2.0f);
+		}
+		if (s_patchTriangleCounterClockwise==null) {
+			s_patchTriangleCounterClockwise = CreateNewMesh();
+			Vector2		uvMin, uvMax;
+			
+			//	adjust the UVs to be the same as the width of the brush
+			float brushWidth = 32.0f;
+			float polygonWidth = 128.0f;
+			float brushEdgeToPolyEdgeRatio = brushWidth / polygonWidth;
+			uvMin = new Vector2(0.50f,1.0f-brushEdgeToPolyEdgeRatio);	//	use the center of the brush's texture for the stretch
+			uvMax = new Vector2(0.50f,brushEdgeToPolyEdgeRatio);
+			s_patchTriangleCounterClockwise.uv = GetUVs(uvMin, uvMax);
+			
+			Vector3[] newVerts = new Vector3[4];
+			float xoff = -0.5f;
+			float yoff = -0.5f;
+			newVerts[0] = new Vector3(xoff+0.5f, yoff+0.0f, 0.0f);
+			newVerts[1] = new Vector3(xoff+0.5f, yoff+0.0f, 0.0f);
+			newVerts[2] = new Vector3(xoff+1.5f, yoff+1.0f, 0.0f);
+			newVerts[3] = new Vector3(xoff-0.5f, yoff+1.0f, 0.0f);
+			s_patchTriangleCounterClockwise.vertices = newVerts;
+			
+			this.ScaleMesh(s_patchTriangleCounterClockwise, s_patchTriangleCounterClockwise.vertices, brushWidth*2.0f, brushWidth*2.0f);
 		}
 		
 		if (m_Pivot == null)

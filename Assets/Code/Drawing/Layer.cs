@@ -31,6 +31,8 @@ public class Layer : MonoBehaviour
 	//	use slow render for brushes and other things that need to directly modify the texture
 	public bool m_bFastRender = true;	//	uses polygons rather than direct texture access to draw brushes
 	public bool m_bStretchSpriteRender = true;	//	stretch a brush across the space between user input points
+	public bool m_bPatchQuad = true;
+	public bool m_bPatchTri = true;
 	public int	m_numStretchSprites = 2;
 	public float m_userInputSampleRate = 90.0f;		//	sample user imput this many times per second
 	/*
@@ -271,7 +273,7 @@ public class Layer : MonoBehaviour
 		float	nInterpolations;
 		
 		if (idx0==idx1) {
-			CreateBrushGO(m_myBrush, m_prevPointsList[0], false);
+			//CreateBrushGO(m_myBrush, m_prevPointsList[0], false);
 		}
 		else {
 			for(int ii=idx0; ii<idx1; ii++) {		//	actual points
@@ -379,10 +381,10 @@ public class Layer : MonoBehaviour
 		m_bDestroyAllSprites = false;
 	}
 	
-	GameObject CreatePatchTriangle(Brush brush, Vector3 worldPos)
+	GameObject CreatePatchTriangle(Brush brush, Vector3 worldPos, bool bClockwiseTurn)
 	{
 		GameObject spriteGO = null;
-		spriteGO = Sprite3D.CreatePatchTriangleSprite3D(brush.GetTexture());
+		spriteGO = Sprite3D.CreatePatchTriangleSprite3D(brush.GetTexture(), bClockwiseTurn);
 		spriteGO.transform.position = worldPos;
 		spriteGO.transform.parent = this.transform;
 		spriteGO.layer = this.gameObject.layer;
@@ -428,11 +430,12 @@ public class Layer : MonoBehaviour
 		//	difference between previous and current.
 		//float theta = angle - prevAngle;
 		float theta = Mathf.DeltaAngle(prevAngle*Mathf.Rad2Deg, angle*Mathf.Rad2Deg) * Mathf.Deg2Rad;
+		float posTheta = theta;
 		//	need to push the current start point forward a bit according to the angle
 		float brushWidth = this.m_myBrush.m_brushWidth;
 		float	extraPatchWidth = brushWidth/2.0f;
-		if (theta < 0.0f) theta = -theta;	//	no negative angles
-		float pushDist = brushWidth * Mathf.Tan(theta / 2.0f);
+		if (posTheta < 0.0f) posTheta = -posTheta;	//	no negative angles
+		float pushDist = brushWidth * Mathf.Tan(posTheta / 2.0f);
 		//pushDist = 0.0f;
 		startPt1 += diffPt.normalized * pushDist;	//	push forward a little bit
 			spriteGO = CreateBrushGO(brush, startPt1, true);
@@ -458,7 +461,7 @@ public class Layer : MonoBehaviour
 			float scale = len;			//	scale should be 1.0, not 0.0 if pt1 and pt2 are the same.
 			//scale -= 0.5f;				//	subtract half a brush width for patch triangle(s)
 			if (scale < 0.0f)
-				scale = 0.01f;
+				scale = 0.00f;
 
 		/*
 			//	breakpoint for debugging
@@ -483,66 +486,70 @@ public class Layer : MonoBehaviour
 		}
 		*/
 		
-		//	create patch sprite. This is a quad
-		Sprite3D patchSprite = Instantiate(sprite) as Sprite3D;
-		Vector3 patchStartPt1 = prevEndpt2 + prevDiffPt.normalized * (-extraPatchWidth);
-		patchSprite.transform.position = patchStartPt1;
-		{	//	rotate our segment
-			Vector3 newEulerAngles = Vector3.zero;
-			newEulerAngles.z = prevAngle * Mathf.Rad2Deg;
-			patchSprite.transform.localEulerAngles = newEulerAngles;
-			patchSprite.transform.parent = this.transform;			
+		if (m_bPatchQuad) {
+			//	create patch sprite. This is a quad
+			Sprite3D patchSprite = Instantiate(sprite) as Sprite3D;
+			Vector3 patchStartPt1 = prevEndpt2 + prevDiffPt.normalized * (-extraPatchWidth);
+			patchSprite.transform.position = patchStartPt1;
+			{	//	rotate our segment
+				Vector3 newEulerAngles = Vector3.zero;
+				newEulerAngles.z = prevAngle * Mathf.Rad2Deg;
+				patchSprite.transform.localEulerAngles = newEulerAngles;
+				patchSprite.transform.parent = this.transform;			
+			}
+			{
+				//	figure out the scale
+				Vector3 patchScale = Vector3.one;
+				//pushDist = brushWidth * Mathf.Tan(theta / 2.0f);
+				len = extraPatchWidth - pushDist;
+				len /= spriteWidth;			//	since our brush is unit size, we need to change our units for the scale accordingly.
+				scale = len;			//	scale should be 1.0, not 0.0 if pt1 and pt2 are the same.
+				//scale -= 0.5f;				//	subtract half a brush width for patch triangle(s)
+				if (scale < 0.0f)
+					scale = 0.0f;
+				patchScale.x = len;
+				patchSprite.transform.localScale = patchScale;
+				patchSprite.name = spriteGO + " patch";
+			}
+			m_spriteList.Add(patchSprite.gameObject);
 		}
-		{
-			//	figure out the scale
-			Vector3 patchScale = Vector3.one;
-			//pushDist = brushWidth * Mathf.Tan(theta / 2.0f);
-			len = extraPatchWidth - pushDist;
-			len /= spriteWidth;			//	since our brush is unit size, we need to change our units for the scale accordingly.
-			scale = len;			//	scale should be 1.0, not 0.0 if pt1 and pt2 are the same.
-			//scale -= 0.5f;				//	subtract half a brush width for patch triangle(s)
-			if (scale < 0.0f)
-				scale = 0.0f;
-			patchScale.x = len;
-			patchSprite.transform.localScale = patchScale;
-			patchSprite.name = spriteGO + " patch";
+		if (m_bPatchTri) {
+			//	figure out patch triangle which has width=brushWidth and length=2x brushWidth
+			//	need to scale the standard patch to our hole's exact dimensions
+			float widthScale = Mathf.Cos(theta/2.0f);
+			float lengthScale = Mathf.Sin(theta/2.0f);
+			bool bClockwiseTurn = false;
+			//if (theta < 0.0f) bClockwiseTurn = false;
+			GameObject patchTriangleGO = CreatePatchTriangle(brush, prevEndpt2, bClockwiseTurn);
+			Sprite3D patchTriangleSprite = patchTriangleGO.GetComponent<Sprite3D>();
+			float averageAngle = (prevAngle + angle)/2.0f;
+			if (prevAngle - angle < 0.0f) {		//	flip 180 degrees for reverse case.
+				averageAngle = averageAngle + Mathf.PI;
+			}
+			if (averageAngle != 0.0f) {	//	rotate our segment
+				Vector3 newEulerAngles = Vector3.zero;
+				newEulerAngles.z = averageAngle * Mathf.Rad2Deg;
+				patchTriangleSprite.transform.localEulerAngles = newEulerAngles;
+				patchTriangleSprite.transform.parent = this.transform;
+			}
+			{
+				//	figure out the scale
+				Vector3 patchScale = Vector3.one;
+				patchScale.x = lengthScale;
+				patchScale.y = widthScale;
+				patchTriangleSprite.transform.localScale = patchScale;
+				patchTriangleSprite.name = spriteGO + " patch Triangle";
+			}
+			{
+				//	need to move it down in local y-axis a little bit
+				Vector3 localPos = patchTriangleSprite.transform.localPosition;
+				float distFromEndPt2ToPatchCorner = ( 2.0f*brushWidth/(widthScale*2.0f));
+				float distFromPatchCornerToPatchCenter = widthScale*brushWidth;
+				float offsetFromCenter = -distFromEndPt2ToPatchCorner + distFromPatchCornerToPatchCenter;
+				localPos += (patchTriangleSprite.transform.up)*(offsetFromCenter);
+				patchTriangleSprite.transform.localPosition = localPos;
+			}		
 		}
-		m_spriteList.Add(patchSprite.gameObject);
-		
-		//	figure out patch triangle which has width=brushWidth and length=2x brushWidth
-		//	need to scale the standard patch to our hole's exact dimensions
-		float widthScale = Mathf.Cos(theta/2.0f);
-		float lengthScale = Mathf.Sin(theta/2.0f);
-		GameObject patchTriangleGO = CreatePatchTriangle(brush, prevEndpt2);
-		Sprite3D patchTriangleSprite = patchTriangleGO.GetComponent<Sprite3D>();
-		float averageAngle = (prevAngle + angle)/2.0f;
-		if (prevAngle - angle < 0.0f) {		//	flip 180 degrees for reverse case.
-			averageAngle = averageAngle + Mathf.PI;
-		}
-		if (averageAngle != 0.0f) {	//	rotate our segment
-			Vector3 newEulerAngles = Vector3.zero;
-			newEulerAngles.z = averageAngle * Mathf.Rad2Deg;
-			patchTriangleSprite.transform.localEulerAngles = newEulerAngles;
-			patchTriangleSprite.transform.parent = this.transform;
-		}
-		{
-			//	figure out the scale
-			Vector3 patchScale = Vector3.one;
-			patchScale.x = lengthScale;
-			patchScale.y = widthScale;
-			patchTriangleSprite.transform.localScale = patchScale;
-			patchTriangleSprite.name = spriteGO + " patch Triangle";
-		}
-		{
-			//	need to move it down in local y-axis a little bit
-			Vector3 localPos = patchTriangleSprite.transform.localPosition;
-			float distFromEndPt2ToPatchCorner = ( 2.0f*brushWidth/(widthScale*2.0f));
-			float distFromPatchCornerToPatchCenter = widthScale*brushWidth;
-			float offsetFromCenter = -distFromEndPt2ToPatchCorner + distFromPatchCornerToPatchCenter;
-			localPos += (patchTriangleSprite.transform.up)*(offsetFromCenter);
-			patchTriangleSprite.transform.localPosition = localPos;
-		}		
-		
 		for(int ii=0; ii<numStretchedSprites; ii++) {
 			Sprite3D newSprite = Instantiate(sprite) as Sprite3D;
 			//newSprite.SetUVs(uvMin, uvMax);
