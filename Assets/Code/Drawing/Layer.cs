@@ -483,7 +483,7 @@ public class Layer : MonoBehaviour
 		}
 		*/
 		
-		//	create patch sprite
+		//	create patch sprite. This is a quad
 		Sprite3D patchSprite = Instantiate(sprite) as Sprite3D;
 		Vector3 patchStartPt1 = prevEndpt2 + prevDiffPt.normalized * (-extraPatchWidth);
 		patchSprite.transform.position = patchStartPt1;
@@ -509,7 +509,10 @@ public class Layer : MonoBehaviour
 		}
 		m_spriteList.Add(patchSprite.gameObject);
 		
-		
+		//	figure out patch triangle which has width=brushWidth and length=2x brushWidth
+		//	need to scale the standard patch to our hole's exact dimensions
+		float widthScale = Mathf.Cos(theta/2.0f);
+		float lengthScale = Mathf.Sin(theta/2.0f);
 		GameObject patchTriangleGO = CreatePatchTriangle(brush, prevEndpt2);
 		Sprite3D patchTriangleSprite = patchTriangleGO.GetComponent<Sprite3D>();
 		float averageAngle = (prevAngle + angle)/2.0f;
@@ -522,17 +525,17 @@ public class Layer : MonoBehaviour
 		{
 			//	figure out the scale
 			Vector3 patchScale = Vector3.one;
-			//pushDist = brushWidth * Mathf.Tan(theta / 2.0f);
-			len = pushDist * 8.0f;
-			len /= spriteWidth;			//	since our brush is unit size, we need to change our units for the scale accordingly.
-			scale = len;			//	scale should be 1.0, not 0.0 if pt1 and pt2 are the same.
-			//scale -= 0.5f;				//	subtract half a brush width for patch triangle(s)
-			if (scale < 0.0f)
-				scale = 0.01f;
-			patchScale.x = Mathf.Sin(theta/2.0f);
-			patchScale.y = Mathf.Cos(theta/2.0f);
+			patchScale.x = lengthScale;
+			patchScale.y = widthScale;
 			patchTriangleSprite.transform.localScale = patchScale;
 			patchTriangleSprite.name = spriteGO + " patch Triangle";
+			//	need to move it down in local y-axis a little bit
+			Vector3 localPos = patchTriangleSprite.transform.localPosition;
+			float distFromEndPt2ToPatchCorner = ( 2.0f*brushWidth/(widthScale*2.0f));
+			float distFromPatchCornerToPatchCenter = widthScale*brushWidth;
+			float offsetFromCenter = -distFromEndPt2ToPatchCorner + distFromPatchCornerToPatchCenter;
+			localPos += (patchTriangleSprite.transform.up)*(offsetFromCenter);
+			patchTriangleSprite.transform.localPosition = localPos;
 		}		
 		
 		for(int ii=0; ii<numStretchedSprites; ii++) {
